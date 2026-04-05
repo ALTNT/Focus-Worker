@@ -1075,10 +1075,38 @@
             initTaskManagement();
             initLeaveManagement();
             initStatistics();
+            migrateToLogs(); // 数据结构升级
             initPapersManagement();
             initSubmissionsManagement();
+            initLogsManagement(); // 初始化日志弹窗事件
             updateTodayStatus();
             saveData();
+        }
+
+        // 数据迁移：将旧的 notes 转换为 logs 时间轴的第一条记录
+        function migrateToLogs() {
+            let changed = false;
+            papersData.forEach(p => {
+                if (p.notes !== undefined && (!p.logs || p.logs.length === 0)) {
+                    p.logs = [{ date: new Date().toISOString(), content: p.notes }];
+                    delete p.notes;
+                    changed = true;
+                }
+                if (!p.logs) p.logs = [];
+            });
+            submissionsData.forEach(s => {
+                if (s.notes !== undefined && (!s.logs || s.logs.length === 0)) {
+                    s.logs = [{ 
+                        date: new Date().toISOString(), 
+                        reviewerComments: s.notes, 
+                        myResponse: '', 
+                        status: s.status 
+                    }];
+                    delete s.notes;
+                    changed = true;
+                }
+                if (!s.logs) s.logs = [];
+            });
         }
 
         // 保存数据到 API
@@ -1099,13 +1127,14 @@
             document.getElementById('add-paper-btn').addEventListener('click', () => {
                 const title = document.getElementById('paper-title').value.trim();
                 if (!title) return;
+                const notes = document.getElementById('paper-notes').value.trim();
                 papersData.push({
                     id: Date.now(),
                     title,
                     venue: document.getElementById('paper-venue').value,
                     phase: document.getElementById('paper-phase').value,
                     deadline: document.getElementById('paper-deadline').value,
-                    notes: document.getElementById('paper-notes').value
+                    logs: notes ? [{ date: new Date().toISOString(), content: notes }] : []
                 });
                 document.getElementById('paper-title').value = '';
                 document.getElementById('paper-notes').value = '';
@@ -1145,7 +1174,12 @@
                         <span class="text-[10px] text-gray-500 font-medium">${phaseObj.percent}%</span>
                     </div>
                 </td>
-                <td class="py-3 px-4 border-b text-sm text-gray-500 max-w-[150px] truncate" title="${p.notes || ''}">${p.notes || '-'}</td>
+                <td class="py-3 px-4 border-b text-sm text-gray-500 max-w-[150px]">
+                    <button onclick="openLogsModal('paper', ${p.id})" class="text-primary hover:text-secondary flex items-center gap-1 font-medium transition-colors">
+                        <i class="fa fa-file-text-o"></i>
+                        <span>${p.logs && p.logs.length > 0 ? `查看日志(${p.logs.length})` : '写第一条心得'}</span>
+                    </button>
+                </td>
                 <td class="py-3 px-4 border-b text-right">
                     <div class="flex justify-end gap-2 text-xs">
                         <select onchange="updatePaperPhase(${p.id}, this.value)" class="bg-gray-50 border border-gray-200 rounded px-1 py-0.5 focus:outline-none">
@@ -1178,13 +1212,15 @@
             document.getElementById('add-submission-btn').addEventListener('click', () => {
                 const title = document.getElementById('sub-title').value.trim();
                 if (!title) return;
+                const notes = document.getElementById('sub-notes').value.trim();
+                const status = document.getElementById('sub-status').value;
                 submissionsData.push({
                     id: Date.now(),
                     title,
                     venue: document.getElementById('sub-venue').value,
-                    status: document.getElementById('sub-status').value,
+                    status: status,
                     date: document.getElementById('sub-date').value,
-                    notes: document.getElementById('sub-notes').value
+                    logs: notes ? [{ date: new Date().toISOString(), reviewerComments: notes, myResponse: '', status: status }] : []
                 });
                 document.getElementById('sub-title').value = '';
                 document.getElementById('sub-notes').value = '';
@@ -1217,7 +1253,12 @@
                     <span class="px-2 py-1 rounded text-xs font-semibold ${statusColors[s.status] || 'bg-gray-100'}">${s.status}</span>
                 </td>
                 <td class="py-3 px-4 border-b text-sm text-gray-500">${s.date || '-'}</td>
-                <td class="py-3 px-4 border-b text-sm text-gray-500 max-w-[150px] truncate" title="${s.notes || ''}">${s.notes || '-'}</td>
+                <td class="py-3 px-4 border-b text-sm text-gray-500 max-w-[150px]">
+                    <button onclick="openLogsModal('submission', ${s.id})" class="text-secondary hover:text-primary flex items-center gap-1 font-medium transition-colors">
+                        <i class="fa fa-comments-o"></i>
+                        <span>${s.logs && s.logs.length > 0 ? `查看详情(${s.logs.length})` : '记录评审'}</span>
+                    </button>
+                </td>
                 <td class="py-3 px-4 border-b text-right">
                     <div class="flex justify-end gap-2 text-xs">
                         <select onchange="updateSubmissionStatus(${s.id}, this.value)" class="bg-gray-50 border border-gray-200 rounded px-1 py-0.5 focus:outline-none">
@@ -1244,6 +1285,134 @@
                 saveData(); renderSubmissionsTable();
             }
         };
+
+        // --- 弹窗与日志逻辑 ---
+        let currentLogType = null; // 'paper' or 'submission'
+        let currentLogId = null;
+
+        window.openLogsModal = function(type, id) {
+            currentLogType = type;
+            currentLogId = id;
+            const modal = document.getElementById('logs-modal');
+            const paperInputs = document.getElementById('paper-log-inputs');
+            const subInputs = document.getElementById('sub-log-inputs');
+            const title = document.getElementById('logs-modal-title');
+            const inputTitle = document.getElementById('logs-input-title');
+            
+            modal.classList.remove('hidden');
+            if (type === 'paper') {
+                const paper = papersData.find(p => p.id === id);
+                title.textContent = `研究心得/日志: ${paper.title}`;
+                paperInputs.classList.remove('hidden');
+                subInputs.classList.add('hidden');
+                inputTitle.innerHTML = '<i class="fa fa-plus-circle"></i> 新增研究心得';
+            } else {
+                const sub = submissionsData.find(s => s.id === id);
+                title.textContent = `审稿与修改记录: ${sub.title}`;
+                paperInputs.classList.add('hidden');
+                subInputs.classList.remove('hidden');
+                inputTitle.innerHTML = '<i class="fa fa-plus-circle"></i> 记录新一轮评审意见';
+            }
+            renderTimeline();
+        }
+
+        window.closeLogsModal = function() {
+            document.getElementById('logs-modal').classList.add('hidden');
+        }
+
+        window.renderTimeline = function() {
+            const container = document.getElementById('logs-timeline');
+            let logs = [];
+            if (currentLogType === 'paper') {
+                const paper = papersData.find(p => p.id === currentLogId);
+                logs = paper.logs || [];
+            } else {
+                const sub = submissionsData.find(s => s.id === currentLogId);
+                logs = sub.logs || [];
+            }
+
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-gray-400 text-sm">暂无记录，开启你的第一条日志吧</div>';
+                return;
+            }
+
+            // 按时间降序排列
+            const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            container.innerHTML = sortedLogs.map(log => {
+                const dateStr = new Date(log.date).toLocaleDateString('zh-CN', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit', 
+                    hour: '2-digit', minute: '2-digit' 
+                });
+                
+                if (currentLogType === 'paper') {
+                    return `
+                    <div class="relative last:mb-0">
+                        <div class="absolute -left-[31px] w-3 h-3 bg-primary rounded-full ring-4 ring-white"></div>
+                        <div class="text-[10px] font-bold text-gray-400 mb-1 tracking-widest uppercase">${dateStr}</div>
+                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed">${log.content.replace(/\n/g, '<br>')}</div>
+                    </div>`;
+                } else {
+                    return `
+                    <div class="relative last:mb-0">
+                        <div class="absolute -left-[31px] w-3 h-3 bg-secondary rounded-full ring-4 ring-white"></div>
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">${dateStr}</div>
+                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 font-bold border border-gray-200">阶段: ${log.status || 'Unknown'}</span>
+                        </div>
+                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
+                            <div>
+                                <div class="text-[10px] text-red-500 font-black mb-1 uppercase flex items-center gap-1">
+                                    <i class="fa fa-comment-o"></i> 审稿人意见
+                                </div>
+                                <div class="text-xs text-gray-600 italic bg-red-50/50 p-2 rounded-lg border border-red-50">${log.reviewerComments ? log.reviewerComments.replace(/\n/g, '<br>') : '无备注'}</div>
+                            </div>
+                            <div class="pt-2">
+                                <div class="text-[10px] text-green-600 font-black mb-1 uppercase flex items-center justify-end gap-1">
+                                    我的回复与修改 <i class="fa fa-reply"></i>
+                                </div>
+                                <div class="text-xs text-gray-800 bg-green-50/50 p-2 rounded-lg border border-green-50 text-right">${log.myResponse ? log.myResponse.replace(/\n/g, '<br>') : '尚未记录回复'}</div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            }).join('');
+        }
+
+        // 初始化弹窗按钮事件
+        function initLogsManagement() {
+            const btn = document.getElementById('add-log-entry-btn');
+            if (!btn) return;
+            
+            btn.addEventListener('click', () => {
+                if (currentLogType === 'paper') {
+                    const content = document.getElementById('log-content-paper').value.trim();
+                    if (!content) { alert('请输入心得内容'); return; }
+                    const paper = papersData.find(p => p.id === currentLogId);
+                    if (!paper.logs) paper.logs = [];
+                    paper.logs.push({ date: new Date().toISOString(), content });
+                    document.getElementById('log-content-paper').value = '';
+                    renderPapersTable();
+                } else {
+                    const comments = document.getElementById('log-reviewer-comments').value.trim();
+                    const response = document.getElementById('log-my-response').value.trim();
+                    if (!comments && !response) { alert('请至少填写审稿意见或回复内容'); return; }
+                    const sub = submissionsData.find(s => s.id === currentLogId);
+                    if (!sub.logs) sub.logs = [];
+                    sub.logs.push({ 
+                        date: new Date().toISOString(), 
+                        reviewerComments: comments, 
+                        myResponse: response,
+                        status: sub.status
+                    });
+                    document.getElementById('log-reviewer-comments').value = '';
+                    document.getElementById('log-my-response').value = '';
+                    renderSubmissionsTable();
+                }
+                saveData();
+                renderTimeline();
+            });
+        }
 
         // 更新当前日期时间
         function updateDateTime() {
@@ -2673,6 +2842,53 @@
             }
         }
     </script>
+    <!-- 论文/投稿日志弹窗 -->
+    <div id="logs-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden pt-10 pb-10">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 mx-4 max-h-full flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2 text-primary">
+                    <i class="fa fa-history text-xl"></i>
+                    <h3 id="logs-modal-title" class="text-xl font-bold text-gray-800">研究日志/记录</h3>
+                </div>
+                <button onclick="closeLogsModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-2">
+                    <i class="fa fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <div id="logs-timeline-container" class="flex-1 overflow-y-auto pr-2 mb-4">
+                <div id="logs-timeline" class="space-y-6 relative ml-4 border-l-2 border-gray-100 pl-6 pb-4 pt-2">
+                    <!-- 时间轴将由 JS 动态生成 -->
+                </div>
+            </div>
+
+            <div class="border-t pt-4 bg-gray-50 -mx-6 -mb-6 p-6 rounded-b-2xl">
+                <h4 id="logs-input-title" class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1">
+                    <i class="fa fa-plus-circle"></i>新增周记/心得
+                </h4>
+                
+                <div id="paper-log-inputs" class="hidden">
+                    <textarea id="log-content-paper" placeholder="输入本周研究心得、实验进展或遇到的问题..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-24 text-sm"></textarea>
+                </div>
+                
+                <div id="sub-log-inputs" class="hidden space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <span class="text-[10px] text-gray-400 uppercase font-bold ml-1">审稿意见</span>
+                            <textarea id="log-reviewer-comments" placeholder="审稿人反馈的具体意见..." class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-20 text-sm"></textarea>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-400 uppercase font-bold ml-1">我的回复/修改</span>
+                            <textarea id="log-my-response" placeholder="记录你是如何修改或解释的..." class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-20 text-sm"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-4">
+                    <button id="add-log-entry-btn" class="bg-primary hover:bg-primary/90 text-white py-2 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all text-sm">发布记录</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
