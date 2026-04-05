@@ -6,7 +6,7 @@ import { sign, verify } from 'hono/jwt'
 
 const app = new Hono()
 
-const JWT_SECRET = 'phd-tracker-secret-key-2024'
+// No hardcoded secrets here. Use c.env.JWT_SECRET and c.env.REG_CODE.
 
 // Middleware: protect /api/data/* routes via Bearer token
 app.use('/api/data/*', async (c, next) => {
@@ -17,7 +17,7 @@ app.use('/api/data/*', async (c, next) => {
   }
   const token = auth.slice(7)
   try {
-    const payload = await verify(token, JWT_SECRET, 'HS256')
+    const payload = await verify(token, c.env.JWT_SECRET, 'HS256')
     console.log('Token Verified for:', payload.username)
     c.set('username', payload.username)
     await next()
@@ -27,10 +27,21 @@ app.use('/api/data/*', async (c, next) => {
   }
 })
 
-// Hashing helper
-async function hashPassword(password) {
+// Salting helper (username-based salt)
+async function hashPassword(password, username) {
+  const msgUint8 = new TextEncoder().encode(password + username)
+  return await _sha256(msgUint8)
+}
+
+// Legacy helper (for migration)
+async function hashUnsalted(password) {
   const msgUint8 = new TextEncoder().encode(password)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+  return await _sha256(msgUint8)
+}
+
+// Low-level SHA-256
+async function _sha256(uint8) {
+  const hashBuffer = await crypto.subtle.digest('SHA-256', uint8)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
@@ -46,7 +57,7 @@ async function checkRateLimit(c, key, limit = 5) {
   return false
 }
 
-const REG_CODE = 'ST-2026'
+// Invitation code logic now uses c.env.REG_CODE
 
 app.post('/api/register', async (c) => {
   const { username: rawUsername, password, role, regCode } = await c.req.json()
@@ -60,18 +71,18 @@ app.post('/api/register', async (c) => {
   if (username.length < 3) return c.json({ error: '用户名至少3个字符' }, 400)
   if (password.length < 8) return c.json({ error: '密码至少8位' }, 400)
   if (!validRoles.includes(role)) return c.json({ error: '请选择有效的身份' }, 400)
-  if (regCode !== REG_CODE) return c.json({ error: '邀请码错误' }, 400)
+  if (regCode !== c.env.REG_CODE) return c.json({ error: '邀请码错误' }, 400)
 
   const db = c.env.DB
   const existingUser = await db.get(`user:${username}`)
   if (existingUser) return c.json({ error: '该用户名已存在' }, 400)
 
-  const hashedPassword = await hashPassword(password)
+  const hashedPassword = await hashPassword(password, username)
   await db.put(`user:${username}`, JSON.stringify({ password: hashedPassword, role }))
-
+  
   const token = await sign(
     { username, role, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 },
-    JWT_SECRET,
+    c.env.JWT_SECRET,
     'HS256'
   )
   return c.json({ success: true, username, role, token })
@@ -90,9 +101,20 @@ app.post('/api/login', async (c) => {
   if (!userDataStr) return c.json({ error: '用户不存在' }, 400)
 
   const userData = JSON.parse(userDataStr)
-  const hashedPassword = await hashPassword(password)
+  // New salted hash
+  const saltedPassword = await hashPassword(password, username)
+  // Legacy unsalted hash (for migration)
+  const unsaltedPassword = await hashUnsalted(password)
 
-  if (userData.password !== hashedPassword) {
+  if (userData.password === saltedPassword) {
+    // Normal login, salted password matches
+  } else if (userData.password === unsaltedPassword) {
+    // User found with OLD hash, UPGRADE to salted hash automatically
+    console.log('Upgrading User to Salted Hash:', username)
+    userData.password = saltedPassword
+    await db.put(`user:${username}`, JSON.stringify(userData))
+  } else {
+    // Both failed
     return c.json({ error: '密码错误' }, 400)
   }
 
@@ -100,7 +122,7 @@ app.post('/api/login', async (c) => {
 
   const token = await sign(
     { username, role, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 },
-    JWT_SECRET,
+    c.env.JWT_SECRET,
     'HS256'
   )
   return c.json({ success: true, username, role, token })
@@ -113,7 +135,7 @@ app.post('/api/verify', async (c) => {
     return c.json({ authenticated: false })
   }
   try {
-    const payload = await verify(auth.slice(7), JWT_SECRET, 'HS256')
+    const payload = await verify(auth.slice(7), c.env.JWT_SECRET, 'HS256')
     return c.json({ authenticated: true, username: payload.username, role: payload.role || 'phd' })
   } catch {
     return c.json({ authenticated: false })

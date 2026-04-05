@@ -1159,11 +1159,11 @@
             tb.innerHTML = papersData.map(p => {
                 const phaseObj = paperPhases.find(ph => ph.name === p.phase) || { percent: 0 };
                 return `<tr>
-                <td class="py-3 px-4 border-b font-medium text-gray-800">${p.title}</td>
-                <td class="py-3 px-4 border-b text-gray-600 font-mono text-xs">${p.venue || '-'}</td>
+                <td class="py-3 px-4 border-b font-medium text-gray-800">${escapeHTML(p.title)}</td>
+                <td class="py-3 px-4 border-b text-gray-600 font-mono text-xs">${escapeHTML(p.venue) || '-'}</td>
                 <td class="py-3 px-4 border-b">
                     <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-xs font-medium whitespace-nowrap">${p.phase}</span>
+                        <span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-xs font-medium whitespace-nowrap">${escapeHTML(p.phase)}</span>
                     </div>
                 </td>
                 <td class="py-3 px-4 border-b min-w-[120px]">
@@ -1247,12 +1247,12 @@
             const tb = document.getElementById('submissions-table');
             if (!submissionsData.length) { tb.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">暂无记录</td></tr>'; return; }
             tb.innerHTML = submissionsData.map(s => `<tr>
-                <td class="py-3 px-4 border-b font-medium text-gray-800">${s.title}</td>
-                <td class="py-3 px-4 border-b text-gray-600 font-mono text-xs">${s.venue || '-'}</td>
+                <td class="py-3 px-4 border-b font-medium text-gray-800">${escapeHTML(s.title)}</td>
+                <td class="py-3 px-4 border-b text-gray-600 font-mono text-xs">${escapeHTML(s.venue) || '-'}</td>
                 <td class="py-3 px-4 border-b">
-                    <span class="px-2 py-1 rounded text-xs font-semibold ${statusColors[s.status] || 'bg-gray-100'}">${s.status}</span>
+                    <span class="px-2 py-1 rounded text-xs font-semibold ${statusColors[s.status] || 'bg-gray-100'}">${escapeHTML(s.status)}</span>
                 </td>
-                <td class="py-3 px-4 border-b text-sm text-gray-500">${s.date || '-'}</td>
+                <td class="py-3 px-4 border-b text-sm text-gray-500">${escapeHTML(s.date) || '-'}</td>
                 <td class="py-3 px-4 border-b text-sm text-gray-500 max-w-[150px]">
                     <button onclick="openLogsModal('submission', ${s.id})" class="text-secondary hover:text-primary flex items-center gap-1 font-medium transition-colors">
                         <i class="fa fa-comments-o"></i>
@@ -1350,7 +1350,7 @@
                     <div class="relative last:mb-0">
                         <div class="absolute -left-[31px] w-3 h-3 bg-primary rounded-full ring-4 ring-white"></div>
                         <div class="text-[10px] font-bold text-gray-400 mb-1 tracking-widest uppercase">${dateStr}</div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed">${log.content.replace(/\n/g, '<br>')}</div>
+                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed">${escapeHTML(log.content).replace(/\n/g, '<br>')}</div>
                     </div>`;
                 } else {
                     return `
@@ -1358,20 +1358,20 @@
                         <div class="absolute -left-[31px] w-3 h-3 bg-secondary rounded-full ring-4 ring-white"></div>
                         <div class="flex items-center justify-between mb-1">
                             <div class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">${dateStr}</div>
-                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 font-bold border border-gray-200">阶段: ${log.status || 'Unknown'}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 font-bold border border-gray-200">阶段: ${escapeHTML(log.status) || 'Unknown'}</span>
                         </div>
                         <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
                             <div>
                                 <div class="text-[10px] text-red-500 font-black mb-1 uppercase flex items-center gap-1">
                                     <i class="fa fa-comment-o"></i> 审稿人意见
                                 </div>
-                                <div class="text-xs text-gray-600 italic bg-red-50/50 p-2 rounded-lg border border-red-50">${log.reviewerComments ? log.reviewerComments.replace(/\n/g, '<br>') : '无备注'}</div>
+                                <div class="text-xs text-gray-600 italic bg-red-50/50 p-2 rounded-lg border border-red-50">${log.reviewerComments ? escapeHTML(log.reviewerComments).replace(/\n/g, '<br>') : '无备注'}</div>
                             </div>
                             <div class="pt-2">
                                 <div class="text-[10px] text-green-600 font-black mb-1 uppercase flex items-center justify-end gap-1">
                                     我的回复与修改 <i class="fa fa-reply"></i>
                                 </div>
-                                <div class="text-xs text-gray-800 bg-green-50/50 p-2 rounded-lg border border-green-50 text-right">${log.myResponse ? log.myResponse.replace(/\n/g, '<br>') : '尚未记录回复'}</div>
+                                <div class="text-xs text-gray-800 bg-green-50/50 p-2 rounded-lg border border-green-50 text-right">${log.myResponse ? escapeHTML(log.myResponse).replace(/\n/g, '<br>') : '尚未记录回复'}</div>
                             </div>
                         </div>
                     </div>`;
@@ -1422,6 +1422,14 @@
 
             // 更新打卡按钮状态
             updateCheckinButtons();
+        }
+
+        // --- 辅助工具 ---
+        function escapeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
         // 获取今日日期字符串 (YYYY-MM-DD)
@@ -1844,8 +1852,8 @@
                         <i class="fa ${iconClass}"></i>
                     </div>
                     <div>
-                        <div class="font-medium ${textClass}">${achievement.name}</div>
-                        <div class="text-xs ${textClass}">${achievement.description}</div>
+                        <div class="font-medium ${textClass}">${escapeHTML(achievement.name)}</div>
+                        <div class="text-xs ${textClass}">${escapeHTML(achievement.description)}</div>
                     </div>
                 `;
 
@@ -2116,9 +2124,9 @@
                 const durationString = hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`;
 
                 row.innerHTML = `
-                    <td class="py-2 px-4 border-b border-gray-200">${task.name}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${task.startTime}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${task.endTime}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(task.name)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(task.startTime)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(task.endTime)}</td>
                     <td class="py-2 px-4 border-b border-gray-200">${durationString}</td>
                     <td class="py-2 px-4 border-b border-gray-200">
                         <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">已完成</span>
@@ -2167,8 +2175,8 @@
                 taskBlock.style.minHeight = '30px'; // 最小高度
 
                 taskBlock.innerHTML = `
-                    <div class="font-medium text-sm truncate">${task.name}</div>
-                    <div class="text-xs opacity-80">${task.startTime} - ${task.endTime}</div>
+                    <div class="font-medium text-sm truncate">${escapeHTML(task.name)}</div>
+                    <div class="text-xs opacity-80">${escapeHTML(task.startTime)} - ${escapeHTML(task.endTime)}</div>
                 `;
 
                 scheduleContent.appendChild(taskBlock);
@@ -2269,9 +2277,9 @@
 
                 row.innerHTML = `
                     <td class="py-2 px-4 border-b border-gray-200">${formattedDate}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${leave.reason}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(leave.reason)}</td>
                     <td class="py-2 px-4 border-b border-gray-200">
-                        <button class="delete-leave px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs" data-date="${leave.date}">删除</button>
+                        <button class="delete-leave px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs" data-date="${escapeHTML(leave.date)}">删除</button>
                     </td>
                 `;
 
