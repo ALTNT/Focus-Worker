@@ -1,0 +1,11 @@
+name = "phd-tracker"
+main = "src/index.js"
+compatibility_date = "2024-04-05"
+
+[site]
+bucket = "./public"
+
+[[kv_namespaces]]
+binding = "DB"
+id = "0fbd2a14cb894ee28db48469a08d17ec"
+preview_id = "0fbd2a14cb894ee28db48469a08d17ec"
