@@ -1163,6 +1163,14 @@
             initNavigation();
             
             // 恢复计时器状态 (统一从 localStorage/服务器同步)
+            const lastDate = localStorage.getItem(getUserKey('last_date'));
+            if (lastDate && lastDate !== today) {
+                // 跨天重置本地计时器状态
+                localStorage.removeItem(getUserKey('active_start'));
+                localStorage.setItem(getUserKey('accumulated_base'), '0');
+            }
+            localStorage.setItem(getUserKey('last_date'), today);
+
             const localAcc = parseInt(localStorage.getItem(getUserKey('accumulated_base')) || '0');
              const serverAcc = checkinData[today]?.duration || 0;
             
@@ -1675,7 +1683,26 @@
                     pauseBtn.classList.remove('hidden');
                     
                     timerInterval = setInterval(() => {
-                        const total = accumulatedSeconds + Math.floor((Date.now() - timerStartTime) / 1000);
+                        const now = Date.now();
+                        const activeElapsed = Math.floor((now - timerStartTime) / 1000);
+                        const total = accumulatedSeconds + activeElapsed;
+
+                        // 1. 12小时安全上限检查
+                        if (activeElapsed > 12 * 3600) {
+                            pauseBtn.click();
+                            alert('专注时长已达 12 小时上限，系统已自动停止计时。请注意休息！');
+                            return;
+                        }
+
+                        // 2. 跨天自动重置检查
+                        const currentDay = getTodayString();
+                        if (currentDay !== localStorage.getItem(getUserKey('last_date'))) {
+                            pauseBtn.click();
+                            alert('检测到日期变更，已为您保存昨日数据并开启新的一天。');
+                            window.location.reload();
+                            return;
+                        }
+
                         updateTimerUI(total);
                     }, 1000);
                 } else {
@@ -1700,6 +1727,7 @@
 
             startBtn.addEventListener('click', () => {
                 const nowTs = Date.now();
+                localStorage.setItem(getUserKey('last_date'), getTodayString());
                 localStorage.setItem(getUserKey('active_start'), nowTs.toString());
                 localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
                 refreshTimerState();
