@@ -8,8 +8,8 @@ const app = new Hono()
 
 // No hardcoded secrets here. Use c.env.JWT_SECRET and c.env.REG_CODE.
 
-// Middleware: protect /api/data/* routes via Bearer token
-app.use('/api/data/*', async (c, next) => {
+// Middleware: protect /api/data/* and /api/user/* routes via Bearer token
+const authMiddleware = async (c, next) => {
   const auth = c.req.header('Authorization')
   console.log('Middleware Auth Header:', auth ? 'Found' : 'Missing')
   if (!auth || !auth.startsWith('Bearer ')) {
@@ -25,7 +25,10 @@ app.use('/api/data/*', async (c, next) => {
     console.error('JWT Verify Error:', err.message)
     return c.json({ error: 'Unauthorized' }, 401)
   }
-})
+}
+
+app.use('/api/data/*', authMiddleware)
+app.use('/api/user/*', authMiddleware)
 
 // Salting helper (username-based salt)
 async function hashPassword(password, username) {
@@ -140,6 +143,35 @@ app.post('/api/verify', async (c) => {
   } catch {
     return c.json({ authenticated: false })
   }
+})
+
+// User Management: Change Password
+app.post('/api/user/change-password', async (c) => {
+  const username = c.get('username')
+  const { oldPassword, newPassword } = await c.req.json()
+
+  if (!oldPassword || !newPassword) return c.json({ error: '请填写完整信息' }, 400)
+  if (newPassword.length < 8) return c.json({ error: '新密码至少8位' }, 400)
+
+  // Rate Limit check
+  if (await checkRateLimit(c, 'change-password', 5)) return c.json({ error: '请求太频繁，请稍后再试' }, 429)
+
+  const db = c.env.DB
+  const userDataStr = await db.get(`user:${username}`)
+  if (!userDataStr) return c.json({ error: '用户不存在' }, 401)
+
+  const userData = JSON.parse(userDataStr)
+  const oldHashed = await hashPassword(oldPassword, username)
+
+  if (userData.password !== oldHashed) {
+    return c.json({ error: '旧密码错误' }, 400)
+  }
+
+  const newHashed = await hashPassword(newPassword, username)
+  userData.password = newHashed
+  await db.put(`user:${username}`, JSON.stringify(userData))
+
+  return c.json({ success: true, message: '密码修改成功' })
 })
 
 // Data API
