@@ -195,7 +195,7 @@ app.post('/api/data/:key', async (c) => {
 app.post('/api/leaderboard/update', async (c) => {
   const username = c.get('username')
   const payload = await c.req.json()
-  const { date, duration, optOut } = payload
+  const { date, duration, optOut, nickname, avatar } = payload
   if (!date || duration === undefined) {
     return c.json({ error: 'Missing required fields' }, 400)
   }
@@ -206,6 +206,8 @@ app.post('/api/leaderboard/update', async (c) => {
     // Save live duration and update time
     await c.env.DB.put(`leaderboard:${date}:${username}`, JSON.stringify({ 
       duration: parseInt(duration), 
+      nickname: nickname || null,
+      avatar: avatar || null,
       updatedAt: Date.now() 
     }), { expirationTtl: 60 * 60 * 24 * 7 }) // Data expires after 7 days to save space
   }
@@ -226,9 +228,13 @@ app.get('/api/leaderboard/:date', async (c) => {
     if (val) {
       const data = JSON.parse(val)
       let displayUsername = rawUsername
+      const isMe = (rawUsername === currentUsername)
       
-      // Mask username if it's not the current user
-      if (rawUsername !== currentUsername) {
+      // Handle Display Name Rules
+      if (data.nickname) {
+        displayUsername = data.nickname
+      } else if (!isMe) {
+        // Mask raw username if no nickname
         if (rawUsername.length <= 2) {
           displayUsername = rawUsername[0] + '***'
         } else {
@@ -238,8 +244,9 @@ app.get('/api/leaderboard/:date', async (c) => {
       
       results.push({
         username: displayUsername,
-        isMe: rawUsername === currentUsername,
+        isMe: isMe,
         duration: data.duration,
+        avatar: data.avatar || null,
         updatedAt: data.updatedAt
       })
     }
