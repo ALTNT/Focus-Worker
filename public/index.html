@@ -27,7 +27,7 @@
                             dark: '#D5CDC0',
                             light: '#F5F2EC'
                         },
-                        bg: '#F2EFE9', // 莫兰迪米灰基底
+                        bg: '#E9E4DB', // 更柔和的护眼莫兰迪基底
                         text: '#2E3A3F',
                         success: '#9ABF9A',
                         warning: '#E5DDD2',
@@ -50,7 +50,7 @@
         }
         @layer components {
             .card-premium {
-                @apply bg-white rounded-3xl border border-secondary/50 shadow-sm transition-all;
+                @apply bg-[#FAF9F6] rounded-3xl border border-secondary/50 shadow-sm transition-all;
                 box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
             }
             .btn-premium {
@@ -78,7 +78,7 @@
     </style>
 </head>
 
-<body class="bg-gray-100 font-sans min-h-screen">
+<body class="font-sans min-h-screen">
     <!-- 登录/注册全屏遮罩 -->
     <div id="login-screen"
         class="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 z-50 flex items-center justify-center">
@@ -168,7 +168,7 @@
             </div>
         </div>
     </div>
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="px-6 py-8 w-full max-w-[1440px] mx-auto">
         <!-- 顶部标题 -->
         <header class="mb-10 text-left">
             <h1 id="main-title" class="text-3xl font-bold text-text/90 mb-2 inline-block px-4 border-l-4 border-primary">📖 研习间 · 专注纪</h1>
@@ -179,9 +179,9 @@
         </header>
 
         <!-- 主内容区 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10">
             <!-- 左侧导航 -->
-            <nav class="md:col-span-1">
+            <nav class="md:col-span-3">
                 <div class="card-premium p-4 sticky top-8">
                     <ul class="space-y-3">
                         <li>
@@ -231,30 +231,30 @@
                         </button>
                     </div>
 
-                    <div class="mt-10 p-5 bg-secondary/20 rounded-2xl border border-secondary/30">
-                        <h3 class="font-bold text-text/80 mb-4 text-xs uppercase tracking-widest flex items-center gap-2">
-                            <i class="fa fa-leaf text-primary"></i> 今日状态
+                    <div class="mt-8 p-6 bg-secondary/30 rounded-3xl border border-secondary/40 shadow-inner">
+                        <h3 class="font-bold text-text/90 mb-5 text-[11px] uppercase tracking-[0.2em] flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-primary rounded-full"></span> 今日实时状态
                         </h3>
-                        <div class="space-y-4">
+                        <div class="space-y-5">
                             <div class="flex justify-between items-center group">
-                                <span class="text-xs text-text/60">正在进行:</span>
-                                <span id="today-active-task" class="text-xs font-bold text-primary truncate max-w-[100px]">-</span>
+                                <span class="text-xs text-text/50 font-medium">当前活动:</span>
+                                <span id="today-active-task" class="text-xs font-bold text-primary truncate max-w-[120px]">-</span>
                             </div>
                             <div class="flex justify-between items-center group">
-                                <span class="text-xs text-text/60">时段汇总:</span>
-                                <div class="flex gap-1" id="phase-mini-dots">
-                                    <div class="w-2 h-2 rounded-full bg-secondary"></div>
-                                    <div class="w-2 h-2 rounded-full bg-secondary"></div>
-                                    <div class="w-2 h-2 rounded-full bg-secondary"></div>
+                                <span class="text-xs text-text/50 font-medium">时段概览:</span>
+                                <div class="flex gap-1.5" id="phase-mini-dots">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-secondary/60"></div>
+                                    <div class="w-2.5 h-2.5 rounded-full bg-secondary/60"></div>
+                                    <div class="w-2.5 h-2.5 rounded-full bg-secondary/60"></div>
                                 </div>
                             </div>
                             <div class="flex justify-between items-center group">
-                                <span class="text-xs text-text/60">专注时长:</span>
-                                <span id="today-focus-duration" class="text-xs font-black text-primary">0h 0m</span>
+                                <span class="text-xs text-text/50 font-medium">专注时长:</span>
+                                <span id="today-focus-duration" class="text-sm font-black text-primary tracking-tighter">0h 0m</span>
                             </div>
                             <div class="flex justify-between items-center group">
-                                <span class="text-xs text-text/60">手机克制:</span>
-                                <span id="today-phone-count" class="text-xs font-black text-text/80">0次</span>
+                                <span class="text-xs text-text/50 font-medium">手机克制:</span>
+                                <span id="today-phone-count" class="text-sm font-black text-text/80 tracking-tighter">0次</span>
                             </div>
                         </div>
                     </div>
@@ -262,8 +262,7 @@
             </nav>
 
             <!-- 右侧内容区 -->
-            <main class="md:col-span-3">
-            <main class="md:col-span-3">
+            <main class="md:col-span-9">
                 <!-- 专注视图 (原打卡记录) -->
                 <section id="checkin-section" class="space-y-8">
                     <!-- 每日心情打卡 -->
