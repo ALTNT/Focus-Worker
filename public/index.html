@@ -1478,6 +1478,17 @@
             const serverAcc = checkinData[today]?.duration || 0;
             const activeStart = localStorage.getItem(getUserKey('active_start'));
 
+            // 计时器安全审计：如果 active_start 太旧（超过12h）或者是昨天的，强制清除
+            if (activeStart) {
+                const startTs = parseInt(activeStart);
+                const isOverLimit = (Date.now() - startTs) > 12 * 3600 * 1000;
+                const isOldDate = formatDateLocal(new Date(startTs)) !== today;
+                if (isOverLimit || isOldDate) {
+                    localStorage.removeItem(getUserKey('active_start'));
+                    activeStart = null; // 关键：同步清空当前闭环变量
+                }
+            }
+
             let localTotal = localAcc;
             if (activeStart) {
                 localTotal += Math.floor((Date.now() - parseInt(activeStart)) / 1000);
@@ -1999,8 +2010,7 @@
                     btn.classList.remove('text-text/70', 'hover:bg-secondary/30');
 
                     if (item.btn === 'nav-stats') {
-                        updateStatisticsCharts('week');
-                        initHeatmap();
+                        refreshDashboard();
                     } else if (item.btn === 'nav-leaderboard') {
                         fetchLeaderboard();
                     }
@@ -2274,21 +2284,22 @@
             if (!checkinData[today].habits) {
                 checkinData[today].habits = [];
             }
-            const activeHabits = checkinData[today].habits;
 
             document.querySelectorAll('.habit-checkbox').forEach(cb => {
                 const habitId = cb.getAttribute('data-habit');
 
                 // 设置初始状态
-                cb.checked = activeHabits.includes(habitId);
+                cb.checked = (checkinData[today].habits || []).includes(habitId);
 
                 // 绑定事件
                 cb.addEventListener('change', (e) => {
                     const isChecked = e.target.checked;
-                    if (isChecked && !activeHabits.includes(habitId)) {
-                        activeHabits.push(habitId);
-                    } else if (!isChecked && activeHabits.includes(habitId)) {
-                        checkinData[today].habits = activeHabits.filter(h => h !== habitId);
+                    if (isChecked) {
+                        if (!checkinData[today].habits.includes(habitId)) {
+                            checkinData[today].habits.push(habitId);
+                        }
+                    } else {
+                        checkinData[today].habits = checkinData[today].habits.filter(h => h !== habitId);
                     }
                     saveData();
                 });
