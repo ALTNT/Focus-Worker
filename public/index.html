@@ -1114,7 +1114,14 @@
         // 获取当前真实的专注总时长 (包含正在运行的部分)
         function getLiveDuration() {
             if (isTimerRunning && timerStartTime) {
-                const activeElapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+                const now = Date.now();
+                let activeElapsed = Math.floor((now - timerStartTime) / 1000);
+                
+                // 单次 Session 物理上限 12 小时检查，防止挂机导致的脏数据
+                if (activeElapsed > 12 * 3600) {
+                    activeElapsed = 12 * 3600;
+                }
+                
                 return accumulatedSeconds + activeElapsed;
             }
             return accumulatedSeconds;
@@ -2176,7 +2183,13 @@
             pauseBtn.addEventListener('click', () => {
                 const now = Date.now();
                 if (timerStartTime) {
-                    const sessionSeconds = Math.floor((now - timerStartTime) / 1000);
+                    let sessionSeconds = Math.floor((now - timerStartTime) / 1000);
+                    
+                    // 物理上限过滤：单次任务严禁超过 12 小时写入
+                    if (sessionSeconds > 12 * 3600) {
+                        sessionSeconds = 12 * 3600;
+                    }
+
                     accumulatedSeconds += sessionSeconds;
                 }
 
