@@ -1464,8 +1464,22 @@
 
             const localAcc = parseInt(localStorage.getItem(getUserKey('accumulated_base')) || '0');
             const serverAcc = checkinData[today]?.duration || 0;
+            const activeStart = localStorage.getItem(getUserKey('active_start'));
 
-            accumulatedSeconds = Math.max(localAcc, serverAcc);
+            let localTotal = localAcc;
+            if (activeStart) {
+                localTotal += Math.floor((Date.now() - parseInt(activeStart)) / 1000);
+            }
+
+            if (serverAcc > localTotal) {
+                accumulatedSeconds = serverAcc;
+                if (activeStart) {
+                    localStorage.setItem(getUserKey('active_start'), Date.now().toString());
+                }
+            } else {
+                accumulatedSeconds = localAcc;
+            }
+
             localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
 
             initFocusTimer();
