@@ -29,6 +29,7 @@ const authMiddleware = async (c, next) => {
 
 app.use('/api/data/*', authMiddleware)
 app.use('/api/user/*', authMiddleware)
+app.use('/api/leaderboard/*', authMiddleware)
 
 // Salting helper (username-based salt)
 async function hashPassword(password, username) {
@@ -188,6 +189,65 @@ app.post('/api/data/:key', async (c) => {
   const data = await c.req.json()
   await c.env.DB.put(`data:${username}:${key}`, JSON.stringify(data))
   return c.json({ success: true })
+})
+
+// Leaderboard API
+app.post('/api/leaderboard/update', async (c) => {
+  const username = c.get('username')
+  const payload = await c.req.json()
+  const { date, duration, optOut } = payload
+  if (!date || duration === undefined) {
+    return c.json({ error: 'Missing required fields' }, 400)
+  }
+  
+  if (optOut) {
+    await c.env.DB.delete(`leaderboard:${date}:${username}`)
+  } else {
+    // Save live duration and update time
+    await c.env.DB.put(`leaderboard:${date}:${username}`, JSON.stringify({ 
+      duration: parseInt(duration), 
+      updatedAt: Date.now() 
+    }), { expirationTtl: 60 * 60 * 24 * 7 }) // Data expires after 7 days to save space
+  }
+  return c.json({ success: true })
+})
+
+app.get('/api/leaderboard/:date', async (c) => {
+  const date = c.req.param('date')
+  const currentUsername = c.get('username')
+  const prefix = `leaderboard:${date}:`
+  
+  const list = await c.env.DB.list({ prefix })
+  const results = []
+  
+  for (const key of list.keys) {
+    const rawUsername = key.name.substring(prefix.length)
+    const val = await c.env.DB.get(key.name)
+    if (val) {
+      const data = JSON.parse(val)
+      let displayUsername = rawUsername
+      
+      // Mask username if it's not the current user
+      if (rawUsername !== currentUsername) {
+        if (rawUsername.length <= 2) {
+          displayUsername = rawUsername[0] + '***'
+        } else {
+          displayUsername = rawUsername[0] + '***' + rawUsername[rawUsername.length - 1]
+        }
+      }
+      
+      results.push({
+        username: displayUsername,
+        isMe: rawUsername === currentUsername,
+        duration: data.duration,
+        updatedAt: data.updatedAt
+      })
+    }
+  }
+  
+  // Sort descending by duration
+  results.sort((a, b) => b.duration - a.duration)
+  return c.json({ success: true, leaderboard: results })
 })
 
 // Serve index.html for root "/"

@@ -219,11 +219,24 @@
                                 <i class="fa fa-file-text-o"></i>
                             </button>
                         </li>
+                        <li>
+                            <button id="nav-leaderboard"
+                                class="w-full text-left px-5 py-3.5 rounded-2xl hover:bg-secondary/30 flex items-center justify-between text-text/70 transition-colors">
+                                <span class="font-bold">今日排行</span>
+                                <i class="fa fa-trophy"></i>
+                            </button>
+                        </li>
                     </ul>
                     <div class="mt-6 pt-6 border-t border-secondary/50 space-y-2">
                         <button id="change-password-btn"
                             class="w-full text-left px-5 py-3 rounded-2xl text-primary hover:bg-primary/10 flex items-center gap-2 text-sm font-bold transition-colors">
                             <i class="fa fa-lock"></i><span>修改密码</span>
+                        </button>
+                        <button id="toggle-optout-btn"
+                            class="w-full text-left px-5 py-3 rounded-2xl text-primary hover:bg-primary/10 flex items-center justify-between text-sm font-bold transition-colors">
+                            <div class="flex items-center gap-2">
+                                <i class="fa fa-eye" id="optout-icon"></i><span id="optout-text">参与排行</span>
+                            </div>
                         </button>
                         <button id="logout-btn"
                             class="w-full text-left px-5 py-3 rounded-2xl text-danger hover:bg-danger/10 flex items-center gap-2 text-sm font-bold transition-colors">
@@ -769,6 +782,27 @@
                     </div>
                 </section>
 
+                <!-- 排行榜模块 -->
+                <section id="leaderboard-section" class="space-y-8 hidden">
+                    <div class="flex flex-col md:flex-row md:items-center gap-3 border-l-4 border-primary pl-4 mb-2">
+                        <h2 class="text-2xl font-bold text-text/80 flex items-center gap-2">
+                            <span class="text-2xl">🏆</span> 今日排行
+                        </h2>
+                        <span class="text-sm font-medium text-text/50 md:ml-auto">上次更新: <span id="leaderboard-update-time">--:--</span></span>
+                    </div>
+
+                    <div class="card-premium p-6 md:p-8">
+                        <div class="flex items-center border-b border-secondary/30 pb-4 mb-4 px-2 md:px-6">
+                            <span class="w-16 md:w-24 text-left text-sm font-bold text-text/40 uppercase tracking-widest">排名</span>
+                            <span class="flex-1 text-left text-sm font-bold text-text/40 uppercase tracking-widest">学士</span>
+                            <span class="w-24 md:w-32 text-right text-sm font-bold text-text/40 uppercase tracking-widest">时长 (h)</span>
+                        </div>
+                        <div id="leaderboard-list" class="space-y-2 min-h-[200px] flex flex-col justify-center">
+                            <div class="text-center text-text/40 text-sm">正在加载全服数据...</div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- 论文进度模块 -->
                 <section id="papers-section" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
                     <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
@@ -1219,11 +1253,14 @@
 
         async function saveData() {
             const today = getTodayString();
+            const liveDur = getLiveDuration();
             if (checkinData[today]) {
-                checkinData[today].duration = getLiveDuration();
+                checkinData[today].duration = liveDur;
             }
             
-            await Promise.all([
+            const isOptOut = localStorage.getItem(getUserKey('opt_out')) === 'true';
+
+            await Promise.allSettled([
                 apiCall('/data/checkin', 'POST', checkinData),
                 apiCall('/data/phoneResist', 'POST', phoneResistData),
                 apiCall('/data/task', 'POST', taskData),
@@ -1231,6 +1268,7 @@
                 apiCall('/data/achievements', 'POST', achievements),
                 apiCall('/data/papers', 'POST', papersData),
                 apiCall('/data/submissions', 'POST', submissionsData),
+                apiCall('/leaderboard/update', 'POST', { date: today, duration: liveDur, optOut: isOptOut })
             ]);
         }
 
@@ -1632,16 +1670,32 @@
 
         // 初始化导航切换
         function initNavigation() {
+            // 初始化隐身模式状态
+            const isOptOut = localStorage.getItem(getUserKey('opt_out')) === 'true';
+            updateOptOutUI(isOptOut);
+            
+            const toggleBtn = document.getElementById('toggle-optout-btn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const currentOptOut = localStorage.getItem(getUserKey('opt_out')) === 'true';
+                    const newOptOut = !currentOptOut;
+                    localStorage.setItem(getUserKey('opt_out'), newOptOut.toString());
+                    updateOptOutUI(newOptOut);
+                    saveData(); // 立即同步到服务器应用隐身
+                });
+            }
+
             // 定义按钮及其对应的分节。如果多个section对应同一个按钮，可以将它们放在同一个数组中。
             const navMapping = [
                 { btn: 'nav-checkin', sections: ['checkin-section'] },
                 { btn: 'nav-phone', sections: ['phone-section'] },
                 { btn: 'nav-leave', sections: ['leave-section'] },
                 { btn: 'nav-stats', sections: ['stats-section'] },
-                { btn: 'nav-papers', sections: ['papers-section', 'submissions-section'] }
+                { btn: 'nav-papers', sections: ['papers-section', 'submissions-section'] },
+                { btn: 'nav-leaderboard', sections: ['leaderboard-section'] }
             ];
 
-            const allSections = ['checkin-section', 'phone-section', 'tasks-section', 'leave-section', 'stats-section', 'papers-section', 'submissions-section'];
+            const allSections = ['checkin-section', 'phone-section', 'tasks-section', 'leave-section', 'stats-section', 'papers-section', 'submissions-section', 'leaderboard-section'];
 
             navMapping.forEach(item => {
                 const btn = document.getElementById(item.btn);
@@ -1673,9 +1727,81 @@
                     if (item.btn === 'nav-stats') {
                         updateStatisticsCharts('week');
                         initHeatmap(); 
+                    } else if (item.btn === 'nav-leaderboard') {
+                        fetchLeaderboard();
                     }
                 });
             });
+        }
+
+        function updateOptOutUI(isOptOut) {
+            const icon = document.getElementById('optout-icon');
+            const text = document.getElementById('optout-text');
+            if (!icon || !text) return;
+            if (isOptOut) {
+                icon.className = 'fa fa-eye-slash text-text/50';
+                text.textContent = '隐身模式 - 已退出排行';
+                text.className = 'text-text/50';
+            } else {
+                icon.className = 'fa fa-eye text-primary';
+                text.textContent = '公开模式 - 参与排行中';
+                text.className = 'text-primary';
+            }
+        }
+
+        async function fetchLeaderboard() {
+            const listEl = document.getElementById('leaderboard-list');
+            const timeEl = document.getElementById('leaderboard-update-time');
+            if (!listEl) return;
+            
+            listEl.innerHTML = '<div class="text-center text-text/40 text-sm">正在加载全服数据...</div>';
+            
+            try {
+                const today = getTodayString();
+                const res = await apiCall(`/leaderboard/${today}`);
+                
+                const now = new Date();
+                timeEl.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+                if (!res || !res.leaderboard || res.leaderboard.length === 0) {
+                    listEl.innerHTML = '<div class="text-center text-text/40 text-sm py-4">今日暂无排行数据</div>';
+                    return;
+                }
+                
+                let html = '';
+                res.leaderboard.forEach((item, index) => {
+                    const hrs = (item.duration / 3600).toFixed(2);
+                    const isTop1 = index === 0;
+                    const isTop2 = index === 1;
+                    const isTop3 = index === 2;
+                    let rankHTML = `<span class="w-6 h-6 flex items-center justify-center rounded-full bg-secondary/50 text-text/60 text-xs font-bold">${index + 1}</span>`;
+                    
+                    if (isTop1) rankHTML = `<span class="text-xl">🥇</span>`;
+                    else if (isTop2) rankHTML = `<span class="text-xl">🥈</span>`;
+                    else if (isTop3) rankHTML = `<span class="text-xl">🥉</span>`;
+                    
+                    const meBadge = item.isMe ? `<span class="ml-2 px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded border border-primary/20">ME</span>` : '';
+                    const meBg = item.isMe ? 'bg-primary/5 hover:bg-primary/10 border-primary/20' : 'bg-transparent hover:bg-secondary/10 border-transparent';
+                    
+                    html += `
+                        <div class="flex items-center px-2 md:px-6 py-3 border rounded-xl transition-colors ${meBg}">
+                            <div class="w-16 md:w-24">
+                                ${rankHTML}
+                            </div>
+                            <div class="flex-1 text-text/80 font-bold tracking-wide flex items-center">
+                                ${escapeHTML(item.username)} ${meBadge}
+                            </div>
+                            <div class="w-24 md:w-32 text-right">
+                                <span class="font-mono font-bold text-lg text-primary">${hrs}</span><span class="text-text/50 text-xs ml-1 font-medium">h</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listEl.innerHTML = html;
+            } catch (e) {
+                listEl.innerHTML = '<div class="text-center text-text/40 text-sm italic">加载失败，请重试</div>';
+            }
         }
 
         // --- 专注于研习：计时器系统 ---
