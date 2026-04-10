@@ -1806,7 +1806,8 @@
         function formatTimerSeconds(secs) {
             const h = Math.floor(secs / 3600);
             const m = Math.floor((secs % 3600) / 60);
-            return `${h}h ${m}m`;
+            const s = secs % 60;
+            return `${h}h ${m}m ${s}s`;
         }
 
         function updateTimerDisplay() {
