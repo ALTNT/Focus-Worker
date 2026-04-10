@@ -643,42 +643,57 @@
 
                 <!-- 统计分析模块 -->
                 <section id="stats-section" class="space-y-8 hidden">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h2 class="text-xl font-bold text-text/80 flex items-center gap-2">
-                            <span class="text-2xl">📊</span> 统计分析回顾
+                    <div class="flex flex-col md:flex-row md:items-center gap-3 border-l-4 border-primary pl-4 mb-2">
+                        <h2 class="text-2xl font-bold text-text/80 flex items-center gap-2">
+                            <span class="text-2xl">📊</span> 学习热力图
                         </h2>
-                        <!-- 统计周期选择 -->
-                        <div class="inline-flex bg-secondary/30 p-1 rounded-2xl">
-                            <button class="stats-period-btn px-6 py-2 rounded-xl text-xs font-bold transition-all bg-white text-primary shadow-sm" data-period="week">本周</button>
-                            <button class="stats-period-btn px-6 py-2 rounded-xl text-xs font-bold transition-all text-text/50 hover:text-text/80" data-period="month">本月</button>
-                            <button class="stats-period-btn px-6 py-2 rounded-xl text-xs font-bold transition-all text-text/50 hover:text-text/80" data-period="year">本年</button>
-                        </div>
                     </div>
 
-                    <!-- 时长热力图卡片 -->
+                    <!-- 时长热力图区 -->
                     <div class="card-premium p-8">
-                        <div class="flex items-center justify-between mb-8">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                             <div>
-                                <h3 class="text-lg font-bold text-text/80">研究专注热力图</h3>
-                                <p class="text-xs text-text/40 mt-1 italic">按月显示时长分布，点击日期可查看详情</p>
+                                <h3 id="heatmap-month-title" class="text-xl font-bold text-text/90">2026年4月</h3>
                             </div>
-                            <div class="flex items-center gap-4">
-                                <span class="text-[10px] text-text/40 font-bold uppercase">2026年4月</span>
-                                <div class="flex gap-1 items-center">
-                                    <span class="text-[8px] text-text/30">Less</span>
-                                    <div class="w-2.5 h-2.5 rounded-sm bg-secondary/20"></div>
-                                    <div class="w-2.5 h-2.5 rounded-sm bg-[#E6EDE4]"></div>
-                                    <div class="w-2.5 h-2.5 rounded-sm bg-[#C9DAC4]"></div>
-                                    <div class="w-2.5 h-2.5 rounded-sm bg-[#ACC7A4]"></div>
-                                    <div class="w-2.5 h-2.5 rounded-sm bg-[#8FB484]"></div>
-                                    <span class="text-[8px] text-text/30">More</span>
+                            <div class="flex items-center gap-3">
+                                <!-- 自定义月份选择器 -->
+                                <div class="relative">
+                                    <button id="custom-month-trigger" class="flex items-center gap-3 bg-white border border-secondary/40 rounded-full px-5 py-1.5 shadow-sm text-sm font-bold text-text/80 hover:border-primary/50 transition-colors">
+                                        <span id="custom-month-display" class="font-mono">April 2026</span>
+                                        <i class="fa fa-calendar text-text/40"></i>
+                                    </button>
+                                    
+                                    <!-- 弹出选单 -->
+                                    <div id="custom-month-popover" class="hidden absolute top-full left-0 md:right-0 md:left-auto mt-2 bg-white rounded-2xl shadow-xl border border-secondary/20 p-4 w-64 z-50 transform origin-top transition-all">
+                                        <div class="flex justify-between items-center mb-4 px-2">
+                                            <button id="popover-prev-year" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary/20 text-text/60"><i class="fa fa-chevron-left text-xs"></i></button>
+                                            <span id="popover-year-display" class="font-bold text-text/80 font-mono">2026</span>
+                                            <button id="popover-next-year" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary/20 text-text/60"><i class="fa fa-chevron-right text-xs"></i></button>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-2" id="popover-months-grid">
+                                            <!-- JS 动态生成 -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1 ml-2">
+                                    <button id="prev-month-btn" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#E9E2D8] hover:bg-[#D5CDC0] text-text/90 transition-colors">
+                                        <i class="fa fa-caret-left text-lg"></i>
+                                    </button>
+                                    <button id="next-month-btn" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#E9E2D8] hover:bg-[#D5CDC0] text-text/90 transition-colors">
+                                        <i class="fa fa-caret-right text-lg"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- 热力图网格 -->
-                        <div id="research-heatmap" class="grid grid-cols-7 gap-2">
+                        <div id="research-heatmap" class="grid grid-cols-7 gap-3 mb-8">
                             <!-- 由 JS 动态生成 -->
+                        </div>
+
+                        <!-- 底部统计 -->
+                        <div class="text-sm border-t border-secondary/30 pt-4 font-medium text-text/60 text-left" id="heatmap-footer">
+                            本月总专注: 0.0h · 日均 0.0h
                         </div>
                     </div>
 
@@ -916,6 +931,9 @@
         let accumulatedSeconds = 0; // 今日已累计完成的秒数 (base)
         let isTimerRunning = false;
         let syncCounter = 0; // 自动同步计数器
+
+        // 统计分析全局状态
+        let currentStatsMonth = new Date();
 
         // 获取当前真实的专注总时长 (包含正在运行的部分)
         function getLiveDuration() {
@@ -2034,33 +2052,80 @@
         // --- 热力图系统 ---
         function initHeatmap() {
             const container = document.getElementById('research-heatmap');
+            const titleEl = document.getElementById('heatmap-month-title');
+            const displayMonth = document.getElementById('custom-month-display');
             if (!container) return;
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
+            
+            const year = currentStatsMonth.getFullYear();
+            const month = currentStatsMonth.getMonth(); // 0-11
+            
+            // 更新 UI 标识
+            if (titleEl) titleEl.textContent = `${year}年${month + 1}月`;
+            if (displayMonth) {
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                displayMonth.textContent = `${monthNames[month]} ${year}`;
+            }
+            
+            const firstDay = new Date(year, month, 1).getDay(); // 当月第一天是星期几 (0是周日)
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             
+            // 计算需要的空白前缀 (将周一作为一周的第一天)
+            const emptyDays = firstDay === 0 ? 6 : firstDay - 1;
+            
             let html = '';
+            // 添加星期栏
+            const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
+            weekdays.forEach(day => {
+                html += `<div class="text-center text-[10px] font-bold text-text/70 mb-2 uppercase tracking-widest">${day}</div>`;
+            });
+            
+            // 空白占位格 (来自上个月)
+            for (let i = 0; i < emptyDays; i++) {
+                html += `<div class="aspect-square rounded-2xl bg-transparent"></div>`;
+            }
+            
+            let monthTotalSeconds = 0;
+            let monthStudyDays = 0;
+
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 const dayData = checkinData[dateStr] || { duration: 0 };
                 const hours = (dayData.duration || 0) / 3600;
                 
-                let bgColor = 'bg-secondary/10';
-                if (hours > 0) bgColor = 'bg-[#E6EDE4]';
-                if (hours > 3) bgColor = 'bg-[#C9DAC4]';
-                if (hours > 6) bgColor = 'bg-[#ACC7A4]';
-                if (hours > 9) bgColor = 'bg-[#8FB484]';
+                if (hours > 0) {
+                    monthTotalSeconds += dayData.duration;
+                    monthStudyDays++;
+                }
+                
+                // 增加 0 小时格子的对比度，确保文字清晰且有辨识度
+                let bgColor = 'bg-[#F2EFE9] text-text/60 border border-secondary/30';
+                if (hours > 0) bgColor = 'bg-[#E6EDE4] text-text/70 border-none';
+                if (hours > 2) bgColor = 'bg-[#C9DAC4] text-text/80 border-none';
+                if (hours > 5) bgColor = 'bg-[#ACC7A4] text-[#2E3A3F] border-none';
+                if (hours > 8) bgColor = 'bg-[#8FB484] text-[#2E3A3F] border-none';
 
-                html += `<div class="aspect-square rounded-sm ${bgColor} cursor-pointer hover:ring-2 ring-primary/30 transition-all group relative">
-                    <div class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-text text-white text-[8px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 font-bold">${dateStr}: ${hours.toFixed(1)}h</div>
+                html += `<div class="aspect-square flex flex-col items-center justify-center rounded-2xl ${bgColor} cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all">
+                    <span class="font-bold text-sm">${i}</span>
+                    <span class="text-[9px] font-medium opacity-80">${hours.toFixed(1)}h</span>
                 </div>`;
             }
             container.innerHTML = html;
+            
+            // 更新卡片底部的统计信息
+            const footerEl = document.getElementById('heatmap-footer');
+            if (footerEl) {
+                const totalHours = (monthTotalSeconds / 3600).toFixed(1);
+                const avgHours = monthStudyDays > 0 ? (totalHours / monthStudyDays).toFixed(1) : '0.0';
+                footerEl.textContent = `本月总专注: ${totalHours}h · 日均 ${avgHours}h`;
+            }
         }
 
         function calculateStreak() {
-            const dates = Object.keys(checkinData).filter(d => checkinData[d].duration > 0).sort();
+            const targetYearMonth = `${currentStatsMonth.getFullYear()}-${String(currentStatsMonth.getMonth() + 1).padStart(2, '0')}`;
+            const dates = Object.keys(checkinData)
+                .filter(d => d.startsWith(targetYearMonth) && checkinData[d].duration > 0)
+                .sort();
+                
             if (dates.length === 0) return 0;
             let max = 0, curr = 1;
             for (let i = 1; i < dates.length; i++) {
@@ -2196,24 +2261,88 @@
 
         // --- 统计分析系统 ---
         function initStatistics() {
-            document.querySelectorAll('.stats-period-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    const period = this.getAttribute('data-period');
-                    document.querySelectorAll('.stats-period-btn').forEach(btn => {
-                        btn.classList.remove('bg-primary', 'text-white', 'shadow-md');
-                        btn.classList.add('bg-secondary/10', 'text-text/60');
+            // 自定义年月选择器逻辑
+            const trigger = document.getElementById('custom-month-trigger');
+            const popover = document.getElementById('custom-month-popover');
+            const popoverYear = document.getElementById('popover-year-display');
+            const monthsGrid = document.getElementById('popover-months-grid');
+            
+            let popoverCurrentYear = currentStatsMonth.getFullYear();
+            
+            const renderPopoverMonths = () => {
+                if (!popoverYear || !monthsGrid) return;
+                popoverYear.textContent = popoverCurrentYear;
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                monthsGrid.innerHTML = monthNames.map((m, idx) => {
+                    const isSelected = popoverCurrentYear === currentStatsMonth.getFullYear() && idx === currentStatsMonth.getMonth();
+                    const activeClass = isSelected ? 'bg-primary text-white shadow-sm' : 'hover:bg-secondary/30 text-text/80';
+                    return `<button class="p-2 rounded-xl text-xs font-bold transition-colors ${activeClass}" data-month="${idx}">${m}</button>`;
+                }).join('');
+                
+                monthsGrid.querySelectorAll('button').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const m = parseInt(e.target.getAttribute('data-month'));
+                        currentStatsMonth = new Date(popoverCurrentYear, m, 1);
+                        popover.classList.add('hidden');
+                        refreshDashboard();
                     });
-                    this.classList.add('bg-primary', 'text-white', 'shadow-md');
-                    this.classList.remove('bg-secondary/10', 'text-text/60');
-                    updateStatisticsCharts(period);
                 });
-            });
-            updateSummaryStatistics();
-            updateStatisticsCharts('week');
+            };
+
+            if (trigger && popover) {
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    popoverCurrentYear = currentStatsMonth.getFullYear();
+                    renderPopoverMonths();
+                    popover.classList.toggle('hidden');
+                });
+                
+                document.getElementById('popover-prev-year')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    popoverCurrentYear--;
+                    renderPopoverMonths();
+                });
+                
+                document.getElementById('popover-next-year')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    popoverCurrentYear++;
+                    renderPopoverMonths();
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!trigger.contains(e.target) && !popover.contains(e.target)) {
+                        popover.classList.add('hidden');
+                    }
+                });
+            }
+
+            // 左右箭头切换
+            const prevBtn = document.getElementById('prev-month-btn');
+            const nextBtn = document.getElementById('next-month-btn');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    currentStatsMonth = new Date(currentStatsMonth.getFullYear(), currentStatsMonth.getMonth() - 1, 1);
+                    refreshDashboard();
+                });
+            }
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    currentStatsMonth = new Date(currentStatsMonth.getFullYear(), currentStatsMonth.getMonth() + 1, 1);
+                    refreshDashboard();
+                });
+            }
+
+            refreshDashboard();
         }
 
-        function updateStatisticsCharts(period) {
-            const { startDate, endDate, labels } = getDateRange(period);
+        function refreshDashboard() {
+            initHeatmap();
+            updateSummaryStatistics();
+            updateStatisticsCharts();
+        }
+
+        function updateStatisticsCharts() {
+            const { startDate, endDate, labels } = getDateRange();
             const studyTrendData = prepareStudyDurationData(startDate, endDate, labels);
             const scheduleData = prepareScheduleConsistencyData();
             const phoneData = preparePhoneResistChartData(startDate, endDate, labels);
@@ -2332,24 +2461,16 @@
             });
         }
 
-        function getDateRange(period) {
-            const endDate = new Date();
-            const startDate = new Date();
+        function getDateRange() {
+            const year = currentStatsMonth.getFullYear();
+            const month = currentStatsMonth.getMonth();
+            const startDate = new Date(year, month, 1);
+            const endDate = new Date(year, month + 1, 0); // 月末最后一天
+            const daysInMonth = endDate.getDate();
+            
             let labels = [];
-            if (period === 'week') {
-                startDate.setDate(endDate.getDate() - 6);
-                for (let i = 0; i < 7; i++) {
-                    const d = new Date(startDate);
-                    d.setDate(startDate.getDate() + i);
-                    labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-                }
-            } else if (period === 'month') {
-                startDate.setDate(endDate.getDate() - 29);
-                for (let i = 0; i < 30; i += 5) {
-                    const d = new Date(startDate);
-                    d.setDate(startDate.getDate() + i);
-                    labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-                }
+            for (let i = 1; i <= daysInMonth; i++) {
+                labels.push(`${month + 1}/${i}`);
             }
             return { startDate, endDate, labels };
         }
@@ -2367,20 +2488,21 @@
         }
 
         function prepareScheduleConsistencyData() {
-            // 统计周一到周日每个时段的打卡次数与天数
-            const counts = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+            const counts = [0, 0, 0, 0, 0, 0, 0]; 
             const days = [0, 0, 0, 0, 0, 0, 0];
+            const targetYearMonth = `${currentStatsMonth.getFullYear()}-${String(currentStatsMonth.getMonth() + 1).padStart(2, '0')}`;
             
             Object.keys(checkinData).forEach(dateStr => {
-                const day = new Date(dateStr).getDay(); // 0 is Sun, 1 is Mon...
-                const index = day === 0 ? 6 : day - 1; // Map to Mon=0, Sun=6
+                if (!dateStr.startsWith(targetYearMonth)) return; // 仅过滤当前月
+                
+                const day = new Date(dateStr).getDay(); 
+                const index = day === 0 ? 6 : day - 1; 
                 
                 const phases = checkinData[dateStr].phases || [];
                 counts[index] += phases.length;
                 days[index]++;
             });
             
-            // 计算平均值 (0.0 - 3.0)
             return counts.map((count, i) => days[i] > 0 ? (count / days[i]).toFixed(1) : 0);
         }
 
@@ -2444,9 +2566,14 @@
         }
 
         function updateSummaryStatistics() {
-            const today = getTodayString();
-            const totalHours = Object.values(checkinData).reduce((sum, d) => sum + (d.duration || 0), 0) / 3600;
-            const studyDays = Object.values(checkinData).filter(d => d.duration > 0).length;
+            const targetYearMonth = `${currentStatsMonth.getFullYear()}-${String(currentStatsMonth.getMonth() + 1).padStart(2, '0')}`;
+            
+            const monthData = Object.entries(checkinData)
+                .filter(([dateStr]) => dateStr.startsWith(targetYearMonth))
+                .map(([_, data]) => data);
+                
+            const totalHours = monthData.reduce((sum, d) => sum + (d.duration || 0), 0) / 3600;
+            const studyDays = monthData.filter(d => d.duration > 0).length;
             
             if (document.getElementById('total-checkin-days')) document.getElementById('total-checkin-days').textContent = studyDays;
             if (document.getElementById('total-task-hours')) document.getElementById('total-task-hours').textContent = totalHours.toFixed(1);
