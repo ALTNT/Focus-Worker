@@ -173,7 +173,8 @@
         <header class="mb-10 text-left flex justify-between items-start">
             <div>
                 <h1 id="main-title"
-                    class="text-3xl font-bold text-text/90 mb-2 inline-block px-4 border-l-4 border-primary">📖 研习间 · 专注纪
+                    class="text-3xl font-bold text-text/90 mb-2 inline-block px-4 border-l-4 border-primary">📖 研习间 ·
+                    专注纪
                 </h1>
                 <div class="flex items-center gap-4 mt-2">
                     <span class="text-sm text-text/60 font-medium" id="current-date-time">2023年7月21日 星期五 08:00</span>
@@ -182,14 +183,16 @@
                         id="user-role-badge">STUDENT</span>
                 </div>
             </div>
-            
+
             <!-- 用户头部档案 -->
-            <div class="flex items-center gap-3 cursor-pointer hover:bg-secondary/20 p-2 rounded-2xl transition-colors" onclick="openProfileModal()">
+            <div class="flex items-center gap-3 cursor-pointer hover:bg-secondary/20 p-2 rounded-2xl transition-colors"
+                onclick="openProfileModal()">
                 <div class="text-right hidden sm:block">
                     <div class="text-sm font-bold text-text/80" id="header-nickname">Loading...</div>
                     <div class="text-xs text-text/40" id="header-username">@loading</div>
                 </div>
-                <img id="header-avatar" src="https://ui-avatars.com/api/?name=User&background=B7C9B5&color=fff" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary/20 object-cover shadow-sm">
+                <img id="header-avatar" src="https://ui-avatars.com/api/?name=User&background=B7C9B5&color=fff"
+                    alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary/20 object-cover shadow-sm">
             </div>
         </header>
 
@@ -1070,7 +1073,7 @@
 
     <!-- 成就弹窗 -->
     <div id="achievement-popup"
-        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-6 w-80 hidden achievement-popup">
+        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-2xl p-6 w-80 hidden achievement-popup z-[110]">
         <div class="text-center">
             <div class="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fa fa-trophy text-2xl text-white"></i>
@@ -1091,6 +1094,8 @@
         let taskData = { longterm: [], daily: {} }; // 新任务结构
         let leaveData = [];
         let achievements = [];
+        let papersData = [];
+        let submissionsData = [];
         let userProfile = { nickname: '', avatarBase64: '' };
         let _authToken = null;
         let _username = null;       // 当前登录用户名
@@ -1275,12 +1280,12 @@
             const headerNickname = document.getElementById('header-nickname');
             const headerUsername = document.getElementById('header-username');
             const headerAvatar = document.getElementById('header-avatar');
-            
-            if(headerNickname) headerNickname.textContent = userProfile.nickname || _username;
-            if(headerUsername) headerUsername.textContent = '@' + _username;
-            
+
+            if (headerNickname) headerNickname.textContent = userProfile.nickname || _username;
+            if (headerUsername) headerUsername.textContent = '@' + _username;
+
             const defaultAvatar = `https://ui-avatars.com/api/?name=${_username}&background=B7C9B5&color=fff`;
-            if(headerAvatar) headerAvatar.src = userProfile.avatarBase64 || defaultAvatar;
+            if (headerAvatar) headerAvatar.src = userProfile.avatarBase64 || defaultAvatar;
         }
 
         function openProfileModal() {
@@ -1288,11 +1293,11 @@
             document.getElementById('password-error').classList.add('hidden');
             document.getElementById('password-success').classList.add('hidden');
             document.getElementById('profile-msg').classList.add('hidden');
-            
+
             document.getElementById('old-password').value = '';
             document.getElementById('new-password').value = '';
             document.getElementById('confirm-password').value = '';
-            
+
             document.getElementById('profile-nickname').value = userProfile.nickname || '';
             const defaultAvatar = `https://ui-avatars.com/api/?name=${_username}&background=B7C9B5&color=fff`;
             document.getElementById('profile-avatar-preview').src = userProfile.avatarBase64 || defaultAvatar;
@@ -1306,16 +1311,16 @@
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = function (event) {
                 const img = new Image();
-                img.onload = function() {
+                img.onload = function () {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     // 缩小至 128x128 限制体积
                     const MAX_SIZE = 128;
                     let width = img.width;
                     let height = img.height;
-                    
+
                     if (width > height) {
                         if (width > MAX_SIZE) {
                             height *= Math.round(MAX_SIZE / width);
@@ -1327,7 +1332,7 @@
                             height = MAX_SIZE;
                         }
                     }
-                    
+
                     canvas.width = MAX_SIZE;
                     canvas.height = MAX_SIZE;
                     // 以 Cover 方式居中截取并缩放
@@ -1335,7 +1340,7 @@
                     const x = (MAX_SIZE / scale - img.width) / 2;
                     const y = (MAX_SIZE / scale - img.height) / 2;
                     ctx.drawImage(img, x, y, img.width, img.height, 0, 0, MAX_SIZE, MAX_SIZE);
-                    
+
                     const base64 = canvas.toDataURL('image/webp', 0.8); // WebP 格式节省体积
                     document.getElementById('profile-avatar-preview').src = base64;
                     userProfile.avatarBase64 = base64;
@@ -1348,13 +1353,13 @@
         async function saveProfile() {
             const nickname = document.getElementById('profile-nickname').value.trim();
             const msgEl = document.getElementById('profile-msg');
-            
+
             userProfile.nickname = nickname;
-            
+
             msgEl.textContent = '保存中...';
             msgEl.classList.remove('hidden', 'text-danger', 'text-success');
             msgEl.classList.add('block', 'text-text/60');
-            
+
             try {
                 await saveData();
                 updateHeaderProfileUI();
@@ -1362,7 +1367,7 @@
                 msgEl.classList.remove('text-text/60', 'text-danger');
                 msgEl.classList.add('text-success');
                 setTimeout(() => msgEl.classList.add('hidden'), 3000);
-            } catch(e) {
+            } catch (e) {
                 msgEl.textContent = '保存失败，请稍后重试';
                 msgEl.classList.remove('text-text/60', 'text-success');
                 msgEl.classList.add('text-danger');
@@ -1514,9 +1519,9 @@
                 apiCall('/data/papers', 'POST', papersData),
                 apiCall('/data/submissions', 'POST', submissionsData),
                 apiCall('/data/profile', 'POST', userProfile),
-                apiCall('/leaderboard/update', 'POST', { 
-                    date: today, 
-                    duration: liveDur, 
+                apiCall('/leaderboard/update', 'POST', {
+                    date: today,
+                    duration: liveDur,
                     optOut: isOptOut,
                     nickname: userProfile.nickname,
                     avatar: userProfile.avatarBase64
@@ -1904,8 +1909,18 @@
 
         // 获取今日日期字符串 (YYYY-MM-DD)
         function getTodayString() {
-            const today = new Date();
-            return today.toISOString().split('T')[0];
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateLocal(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
         // 获取当前时间字符串 (HH:MM)
@@ -2034,7 +2049,7 @@
 
                     const meBadge = item.isMe ? `<span class="ml-2 px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded border border-primary/20">ME</span>` : '';
                     const meBg = item.isMe ? 'bg-primary/5 hover:bg-primary/10 border-primary/20' : 'bg-transparent hover:bg-secondary/10 border-transparent';
-                    
+
                     const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.username)}&background=B7C9B5&color=fff`;
                     const avatarSrc = item.avatar || fallbackAvatar;
 
@@ -2075,8 +2090,15 @@
             window.addEventListener('storage', (e) => {
                 const activeStartKey = getUserKey('active_start');
                 const accBaseKey = getUserKey('accumulated_base');
+
                 if (e.key === activeStartKey || e.key === accBaseKey) {
                     refreshTimerState();
+                }
+
+                // 全局数据静默同步：任何一个标签页更新了数据，其他标签页自动刷新 UI
+                if (e.key === getUserKey('last_date')) {
+                    // 如果日期变了，所有标签页联动
+                    window.location.reload();
                 }
             });
 
@@ -2535,6 +2557,7 @@
                 .filter(d => d.startsWith(targetYearMonth) && checkinData[d].duration > 0)
                 .sort();
 
+
             if (dates.length === 0) return 0;
             let max = 0, curr = 1;
             for (let i = 1; i < dates.length; i++) {
@@ -2769,7 +2792,7 @@
             const data = [];
             let curr = new Date(startDate);
             while (curr <= endDate) {
-                const ds = curr.toISOString().split('T')[0];
+                const ds = formatDateLocal(curr);
                 data.push(phoneResistData.records[ds]?.count || 0);
                 curr.setDate(curr.getDate() + 1);
             }
@@ -2814,7 +2837,7 @@
 
             let curr = new Date(startDate);
             while (curr <= endDate) {
-                const ds = curr.toISOString().split('T')[0];
+                const ds = formatDateLocal(curr);
                 const m = checkinData[ds]?.mood;
                 if (m && moodCounts.hasOwnProperty(m)) {
                     moodCounts[m]++;
@@ -2876,7 +2899,7 @@
             const counts = { reading: 0, vocab: 0, paper: 0, exercise: 0 };
             let curr = new Date(startDate);
             while (curr <= endDate) {
-                const ds = curr.toISOString().split('T')[0];
+                const ds = formatDateLocal(curr);
                 const habits = checkinData[ds]?.habits || [];
                 habits.forEach(h => { if (counts[h] !== undefined) counts[h]++ });
                 curr.setDate(curr.getDate() + 1);
@@ -2943,7 +2966,7 @@
             const data = [];
             let curr = new Date(startDate);
             while (curr <= endDate) {
-                const ds = curr.toISOString().split('T')[0];
+                const ds = formatDateLocal(curr);
                 data.push(((checkinData[ds]?.duration || 0) / 3600).toFixed(1));
                 curr.setDate(curr.getDate() + 1);
             }
@@ -3138,21 +3161,27 @@
     </div>
     <!-- 个人资料弹窗 (Profile Modal) -->
     <div id="profile-modal" class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center hidden">
-        <div class="bg-[#F2EFE9] rounded-3xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col md:flex-row relative">
-            <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-text/40 hover:text-text/70 z-10 w-8 h-8 bg-white/50 rounded-full flex items-center justify-center">
+        <div
+            class="bg-[#F2EFE9] rounded-3xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col md:flex-row relative">
+            <button onclick="closeProfileModal()"
+                class="absolute top-4 right-4 text-text/40 hover:text-text/70 z-10 w-8 h-8 bg-white/50 rounded-full flex items-center justify-center">
                 <i class="fa fa-times"></i>
             </button>
-            
+
             <!-- 左侧：基础资料与头像 -->
-            <div class="w-full md:w-1/2 p-8 bg-white flex flex-col items-center justify-center border-r border-secondary/30">
+            <div
+                class="w-full md:w-1/2 p-8 bg-white flex flex-col items-center justify-center border-r border-secondary/30">
                 <h3 class="text-xl font-bold text-text/80 w-full text-left mb-6">个人档案</h3>
-                
+
                 <!-- 头像区域 -->
-                <div class="relative group cursor-pointer mb-6" onclick="document.getElementById('avatar-upload').click()">
-                    <div class="w-24 h-24 rounded-full border-4 border-secondary/40 overflow-hidden shadow-inner group-hover:border-primary transition-colors">
+                <div class="relative group cursor-pointer mb-6"
+                    onclick="document.getElementById('avatar-upload').click()">
+                    <div
+                        class="w-24 h-24 rounded-full border-4 border-secondary/40 overflow-hidden shadow-inner group-hover:border-primary transition-colors">
                         <img id="profile-avatar-preview" src="" alt="Avatar" class="w-full h-full object-cover">
                     </div>
-                    <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div
+                        class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <i class="fa fa-camera text-white text-xl"></i>
                     </div>
                     <input type="file" id="avatar-upload" accept="image/png, image/jpeg, image/webp" class="hidden">
@@ -3165,7 +3194,7 @@
                     <input type="text" id="profile-nickname" placeholder="输入你想在排行榜展示的名字"
                         class="w-full px-4 py-3 bg-secondary/10 border border-secondary/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium">
                 </div>
-                
+
                 <div class="w-full mt-6">
                     <button id="save-profile-btn"
                         class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold text-sm shadow-md transition-all">保存基础资料</button>
@@ -3194,8 +3223,11 @@
                         <input type="password" id="confirm-password"
                             class="w-full px-4 py-2.5 bg-white border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
                     </div>
-                    <p id="password-error" class="text-danger text-xs hidden bg-red-50 p-2 rounded-lg border border-red-100"></p>
-                    <p id="password-success" class="text-success text-xs hidden bg-green-50 p-2 rounded-lg border border-green-100">密码修改成功！请重新登录。</p>
+                    <p id="password-error"
+                        class="text-danger text-xs hidden bg-red-50 p-2 rounded-lg border border-red-100"></p>
+                    <p id="password-success"
+                        class="text-success text-xs hidden bg-green-50 p-2 rounded-lg border border-green-100">
+                        密码修改成功！请重新登录。</p>
                     <div class="pt-2">
                         <button id="submit-password-btn"
                             class="w-full bg-white text-text/80 border border-secondary hover:border-primary py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">修改密码</button>

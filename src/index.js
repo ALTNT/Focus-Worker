@@ -75,7 +75,7 @@ app.post('/api/register', async (c) => {
   if (username.length < 3) return c.json({ error: '用户名至少3个字符' }, 400)
   if (password.length < 8) return c.json({ error: '密码至少8位' }, 400)
   if (!validRoles.includes(role)) return c.json({ error: '请选择有效的身份' }, 400)
-  if (regCode !== c.env.REG_CODE) return c.json({ error: '邀请码错误' }, 400)
+  if (!c.env.REG_CODE || regCode !== c.env.REG_CODE) return c.json({ error: '邀请码错误或注册通道未开启' }, 400)
 
   const db = c.env.DB
   const existingUser = await db.get(`user:${username}`)
