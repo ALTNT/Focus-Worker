@@ -171,10 +171,14 @@
     <div class="px-6 py-8 w-full max-w-[1440px] mx-auto">
         <!-- 顶部标题 -->
         <header class="mb-10 text-left">
-            <h1 id="main-title" class="text-3xl font-bold text-text/90 mb-2 inline-block px-4 border-l-4 border-primary">📖 研习间 · 专注纪</h1>
+            <h1 id="main-title"
+                class="text-3xl font-bold text-text/90 mb-2 inline-block px-4 border-l-4 border-primary">📖 研习间 · 专注纪
+            </h1>
             <div class="flex items-center gap-4 mt-2">
                 <span class="text-sm text-text/60 font-medium" id="current-date-time">2023年7月21日 星期五 08:00</span>
-                <span class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-wider" id="user-role-badge">STUDENT</span>
+                <span
+                    class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-wider"
+                    id="user-role-badge">STUDENT</span>
             </div>
         </header>
 
@@ -245,13 +249,15 @@
                     </div>
 
                     <div class="mt-8 p-6 bg-secondary/30 rounded-3xl border border-secondary/40 shadow-inner">
-                        <h3 class="font-bold text-text/90 mb-5 text-[11px] uppercase tracking-[0.2em] flex items-center gap-2">
+                        <h3
+                            class="font-bold text-text/90 mb-5 text-[11px] uppercase tracking-[0.2em] flex items-center gap-2">
                             <span class="w-1.5 h-4 bg-primary rounded-full"></span> 今日实时状态
                         </h3>
                         <div class="space-y-5">
                             <div class="flex justify-between items-center group">
                                 <span class="text-xs text-text/50 font-medium">当前活动:</span>
-                                <span id="today-active-task" class="text-xs font-bold text-primary truncate max-w-[120px]">-</span>
+                                <span id="today-active-task"
+                                    class="text-xs font-bold text-primary truncate max-w-[120px]">-</span>
                             </div>
                             <div class="flex justify-between items-center group">
                                 <span class="text-xs text-text/50 font-medium">时段概览:</span>
@@ -263,11 +269,13 @@
                             </div>
                             <div class="flex justify-between items-center group">
                                 <span class="text-xs text-text/50 font-medium">专注时长:</span>
-                                <span id="today-focus-duration" class="text-sm font-black text-primary tracking-tighter">0h 0m</span>
+                                <span id="today-focus-duration"
+                                    class="text-sm font-black text-primary tracking-tighter">0h 0m</span>
                             </div>
                             <div class="flex justify-between items-center group">
                                 <span class="text-xs text-text/50 font-medium">手机克制:</span>
-                                <span id="today-phone-count" class="text-sm font-black text-text/80 tracking-tighter">0次</span>
+                                <span id="today-phone-count"
+                                    class="text-sm font-black text-text/80 tracking-tighter">0次</span>
                             </div>
                         </div>
                     </div>
@@ -297,9 +305,11 @@
                         <h2 class="text-xl font-bold text-text/80 mb-6 flex items-center justify-center gap-2">
                             <span class="text-2xl">⏳</span> 今日专注时长
                         </h2>
-                        
-                        <div class="inline-flex items-center justify-center bg-secondary/30 px-10 py-6 rounded-[40px] mb-8 shadow-inner">
-                            <span id="timer-display" class="text-6xl font-black text-primary tracking-tighter tabular-nums">0h 0m</span>
+
+                        <div
+                            class="inline-flex items-center justify-center bg-secondary/30 px-10 py-6 rounded-[40px] mb-8 shadow-inner">
+                            <span id="timer-display"
+                                class="text-6xl font-black text-primary tracking-tighter tabular-nums">0h 0m</span>
                         </div>
 
                         <div class="flex flex-wrap justify-center gap-4">
@@ -309,45 +319,54 @@
                             <button id="timer-pause-btn" class="btn-secondary-premium flex items-center gap-2 px-8">
                                 <i class="fa fa-pause"></i> 暂停
                             </button>
-                            <button id="timer-reset-btn" class="btn-secondary-premium flex items-center gap-2 px-5 opacity-60 hover:opacity-100">
+                            <button id="timer-reset-btn"
+                                class="btn-secondary-premium flex items-center gap-2 px-5 opacity-60 hover:opacity-100">
                                 <i class="fa fa-refresh"></i>
                             </button>
                         </div>
-                        <p class="mt-6 text-[10px] text-text/40 font-bold uppercase tracking-widest">* 专注时长将自动累计至今日研习统计</p>
+                        <p class="mt-6 text-[10px] text-text/40 font-bold uppercase tracking-widest">* 专注时长将自动累计至今日研习统计
+                        </p>
                     </div>
 
                     <!-- 三段式研习 与 每日必打卡 (双列布局) -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- 三段式研习打卡 -->
                         <div class="card-premium p-6">
-                            <h2 class="text-sm font-bold text-text/80 flex items-center gap-2 mb-4 border-l-4 border-primary pl-2">
+                            <h2
+                                class="text-sm font-bold text-text/80 flex items-center gap-2 mb-4 border-l-4 border-primary pl-2">
                                 <span class="text-lg">🎯</span> 三段式研习打卡
                             </h2>
                             <div class="space-y-3">
-                                <div class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
+                                <div
+                                    class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
                                     <div class="flex items-center gap-3">
                                         <span class="text-lg">🌅</span>
                                         <span class="text-sm font-bold text-text/80">晨间专注</span>
                                     </div>
-                                    <button id="phase-morning-btn" class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
+                                    <button id="phase-morning-btn"
+                                        class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
                                         <i class="fa fa-thumb-tack"></i> 打卡
                                     </button>
                                 </div>
-                                <div class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
+                                <div
+                                    class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
                                     <div class="flex items-center gap-3">
                                         <span class="text-lg">☕</span>
                                         <span class="text-sm font-bold text-text/80">午后研习</span>
                                     </div>
-                                    <button id="phase-afternoon-btn" class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
+                                    <button id="phase-afternoon-btn"
+                                        class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
                                         <i class="fa fa-thumb-tack"></i> 打卡
                                     </button>
                                 </div>
-                                <div class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
+                                <div
+                                    class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
                                     <div class="flex items-center gap-3">
                                         <span class="text-lg">🌙</span>
                                         <span class="text-sm font-bold text-text/80">晚间沉浸</span>
                                     </div>
-                                    <button id="phase-evening-btn" class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
+                                    <button id="phase-evening-btn"
+                                        class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
                                         <i class="fa fa-thumb-tack"></i> 打卡
                                     </button>
                                 </div>
@@ -356,48 +375,61 @@
 
                         <!-- 每日必打卡 -->
                         <div class="card-premium p-6">
-                            <h2 class="text-sm font-bold text-text/80 flex items-center gap-2 mb-4 border-l-4 border-success pl-2">
+                            <h2
+                                class="text-sm font-bold text-text/80 flex items-center gap-2 mb-4 border-l-4 border-success pl-2">
                                 <span class="text-lg">✅</span> 每日必打卡
                             </h2>
                             <div class="space-y-3">
-                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                <label
+                                    class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
                                     <div class="flex items-center gap-3">
                                         <span class="text-lg">📖</span>
                                         <span class="text-sm font-bold text-text/80">读书</span>
                                     </div>
                                     <input type="checkbox" class="hidden peer habit-checkbox" data-habit="reading">
-                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
-                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    <div
+                                        class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <i
+                                            class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
                                     </div>
                                 </label>
-                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                <label
+                                    class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
                                     <div class="flex items-center gap-3">
                                         <span class="text-lg">📝</span>
                                         <span class="text-sm font-bold text-text/80">单词</span>
                                     </div>
                                     <input type="checkbox" class="hidden peer habit-checkbox" data-habit="vocab">
-                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
-                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    <div
+                                        class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <i
+                                            class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
                                     </div>
                                 </label>
-                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                <label
+                                    class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
                                     <div class="flex items-center gap-3">
                                         <span class="text-lg">📄</span>
                                         <span class="text-sm font-bold text-text/80">文献</span>
                                     </div>
                                     <input type="checkbox" class="hidden peer habit-checkbox" data-habit="paper">
-                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
-                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    <div
+                                        class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <i
+                                            class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
                                     </div>
                                 </label>
-                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                <label
+                                    class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
                                     <div class="flex items-center gap-3">
                                         <span class="text-lg">🏃</span>
                                         <span class="text-sm font-bold text-text/80">运动</span>
                                     </div>
                                     <input type="checkbox" class="hidden peer habit-checkbox" data-habit="exercise">
-                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
-                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    <div
+                                        class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <i
+                                            class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
                                     </div>
                                 </label>
                             </div>
@@ -410,20 +442,24 @@
                             <h2 class="text-xl font-bold text-text/80 flex items-center gap-2">
                                 <span class="text-2xl">✅</span> 研究任务
                             </h2>
-                            <div class="text-[10px] bg-secondary/50 px-3 py-1 rounded-full font-bold text-text/50 uppercase tracking-tighter">
+                            <div
+                                class="text-[10px] bg-secondary/50 px-3 py-1 rounded-full font-bold text-text/50 uppercase tracking-tighter">
                                 已按 DDL 排序
                             </div>
                         </div>
 
-                        <!-- 长期任务 -->
+                        <!-- 长期攻关任务 -->
                         <div class="mb-10">
-                            <h3 class="text-xs font-black text-text/40 mb-4 uppercase tracking-widest flex items-center gap-2">
-                                <i class="fa fa-calendar-check-o"></i> 长期任务
+                            <h3
+                                class="text-xs font-black text-text/40 mb-4 uppercase tracking-widest flex items-center gap-2">
+                                <i class="fa fa-calendar-check-o"></i> 长期攻关任务
                             </h3>
                             <div class="flex gap-2 mb-4">
-                                <input type="text" id="longterm-task-input" placeholder="添加长期任务名称..." class="input-premium flex-1 py-2 text-sm">
+                                <input type="text" id="longterm-task-input" placeholder="添加长期攻关任务名称..."
+                                    class="input-premium flex-1 py-2 text-sm">
                                 <input type="date" id="longterm-task-ddl" class="input-premium w-40 py-2 text-sm">
-                                <button id="add-longterm-btn" class="btn-primary-premium py-2 text-sm px-6 whitespace-nowrap">添加</button>
+                                <button id="add-longterm-btn"
+                                    class="btn-primary-premium py-2 text-sm px-6 whitespace-nowrap">添加</button>
                             </div>
                             <div id="longterm-tasks-container" class="space-y-3">
                                 <!-- 动态加载 -->
@@ -432,12 +468,15 @@
 
                         <!-- 今日任务 -->
                         <div>
-                            <h3 class="text-xs font-black text-text/40 mb-4 uppercase tracking-widest flex items-center gap-2">
+                            <h3
+                                class="text-xs font-black text-text/40 mb-4 uppercase tracking-widest flex items-center gap-2">
                                 <i class="fa fa-pencil-square-o"></i> 今日任务
                             </h3>
                             <div class="flex gap-2 mb-4">
-                                <input type="text" id="daily-task-input" placeholder="添加今日任务..." class="input-premium flex-1 py-2 text-sm">
-                                <button id="add-daily-btn" class="bg-warning text-text/80 font-bold px-6 py-2 rounded-full hover:bg-warning/80 transition-all text-sm whitespace-nowrap">添加</button>
+                                <input type="text" id="daily-task-input" placeholder="添加今日任务..."
+                                    class="input-premium flex-1 py-2 text-sm">
+                                <button id="add-daily-btn"
+                                    class="bg-warning text-text/80 font-bold px-6 py-2 rounded-full hover:bg-warning/80 transition-all text-sm whitespace-nowrap">添加</button>
                             </div>
                             <div id="daily-tasks-container" class="space-y-3">
                                 <!-- 动态加载 -->
@@ -448,10 +487,12 @@
                         <div class="mt-10 pt-6 border-t border-secondary/30">
                             <div class="flex justify-between items-end mb-2">
                                 <span class="text-xs font-bold text-text/60 italic">研习进度反馈</span>
-                                <span id="task-progress-percent" class="text-lg font-black text-primary font-mono">0%</span>
+                                <span id="task-progress-percent"
+                                    class="text-lg font-black text-primary font-mono">0%</span>
                             </div>
                             <div class="w-full h-2 bg-secondary/30 rounded-full overflow-hidden">
-                                <div id="task-progress-fill" class="h-full bg-primary transition-all duration-700" style="width: 0%"></div>
+                                <div id="task-progress-fill" class="h-full bg-primary transition-all duration-700"
+                                    style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
@@ -664,12 +705,14 @@
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="leave-date" class="block text-[10px] font-bold text-text/40 uppercase mb-1 ml-1">请假日期</label>
+                                <label for="leave-date"
+                                    class="block text-[10px] font-bold text-text/40 uppercase mb-1 ml-1">请假日期</label>
                                 <input type="date" id="leave-date"
                                     class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
                             </div>
                             <div>
-                                <label for="leave-reason" class="block text-[10px] font-bold text-text/40 uppercase mb-1 ml-1">请假理由</label>
+                                <label for="leave-reason"
+                                    class="block text-[10px] font-bold text-text/40 uppercase mb-1 ml-1">请假理由</label>
                                 <input type="text" id="leave-reason" placeholder="如：生病、外出调研等"
                                     class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
                             </div>
@@ -691,12 +734,15 @@
                                     <tr class="text-left border-b border-secondary/20">
                                         <th class="pb-3 px-2 font-bold text-text/40 uppercase text-[10px]">日期</th>
                                         <th class="pb-3 px-2 font-bold text-text/40 uppercase text-[10px]">理由</th>
-                                        <th class="pb-3 px-2 text-right font-bold text-text/40 uppercase text-[10px]">操作</th>
+                                        <th class="pb-3 px-2 text-right font-bold text-text/40 uppercase text-[10px]">操作
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody id="leave-records-table" class="text-text/70">
                                     <!-- 动态加载 -->
-                                    <tr><td colspan="3" class="py-10 text-center text-text/30 italic">暂无记录</td></tr>
+                                    <tr>
+                                        <td colspan="3" class="py-10 text-center text-text/30 italic">暂无记录</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -720,17 +766,24 @@
                             <div class="flex items-center gap-3">
                                 <!-- 自定义月份选择器 -->
                                 <div class="relative">
-                                    <button id="custom-month-trigger" class="flex items-center gap-3 bg-white border border-secondary/40 rounded-full px-5 py-1.5 shadow-sm text-sm font-bold text-text/80 hover:border-primary/50 transition-colors">
+                                    <button id="custom-month-trigger"
+                                        class="flex items-center gap-3 bg-white border border-secondary/40 rounded-full px-5 py-1.5 shadow-sm text-sm font-bold text-text/80 hover:border-primary/50 transition-colors">
                                         <span id="custom-month-display" class="font-mono">April 2026</span>
                                         <i class="fa fa-calendar text-text/40"></i>
                                     </button>
-                                    
+
                                     <!-- 弹出选单 -->
-                                    <div id="custom-month-popover" class="hidden absolute top-full left-0 md:right-0 md:left-auto mt-2 bg-white rounded-2xl shadow-xl border border-secondary/20 p-4 w-64 z-50 transform origin-top transition-all">
+                                    <div id="custom-month-popover"
+                                        class="hidden absolute top-full left-0 md:right-0 md:left-auto mt-2 bg-white rounded-2xl shadow-xl border border-secondary/20 p-4 w-64 z-50 transform origin-top transition-all">
                                         <div class="flex justify-between items-center mb-4 px-2">
-                                            <button id="popover-prev-year" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary/20 text-text/60"><i class="fa fa-chevron-left text-xs"></i></button>
-                                            <span id="popover-year-display" class="font-bold text-text/80 font-mono">2026</span>
-                                            <button id="popover-next-year" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary/20 text-text/60"><i class="fa fa-chevron-right text-xs"></i></button>
+                                            <button id="popover-prev-year"
+                                                class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary/20 text-text/60"><i
+                                                    class="fa fa-chevron-left text-xs"></i></button>
+                                            <span id="popover-year-display"
+                                                class="font-bold text-text/80 font-mono">2026</span>
+                                            <button id="popover-next-year"
+                                                class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary/20 text-text/60"><i
+                                                    class="fa fa-chevron-right text-xs"></i></button>
                                         </div>
                                         <div class="grid grid-cols-3 gap-2" id="popover-months-grid">
                                             <!-- JS 动态生成 -->
@@ -738,23 +791,26 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1 ml-2">
-                                    <button id="prev-month-btn" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#E9E2D8] hover:bg-[#D5CDC0] text-text/90 transition-colors">
+                                    <button id="prev-month-btn"
+                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-[#E9E2D8] hover:bg-[#D5CDC0] text-text/90 transition-colors">
                                         <i class="fa fa-caret-left text-lg"></i>
                                     </button>
-                                    <button id="next-month-btn" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#E9E2D8] hover:bg-[#D5CDC0] text-text/90 transition-colors">
+                                    <button id="next-month-btn"
+                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-[#E9E2D8] hover:bg-[#D5CDC0] text-text/90 transition-colors">
                                         <i class="fa fa-caret-right text-lg"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- 热力图网格 -->
                         <div id="research-heatmap" class="grid grid-cols-7 gap-3 mb-8">
                             <!-- 由 JS 动态生成 -->
                         </div>
 
                         <!-- 底部统计 -->
-                        <div class="text-sm border-t border-secondary/30 pt-4 font-medium text-text/60 text-left" id="heatmap-footer">
+                        <div class="text-sm border-t border-secondary/30 pt-4 font-medium text-text/60 text-left"
+                            id="heatmap-footer">
                             本月总专注: 0.0h · 日均 0.0h
                         </div>
                     </div>
@@ -810,28 +866,32 @@
                     <!-- 综合统计指标 -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="card-premium p-6 text-center group hover:bg-primary/5 transition-colors">
-                            <div class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <div
+                                class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                 <i class="fa fa-calendar-check-o text-primary"></i>
                             </div>
                             <div class="text-2xl font-black text-text/80 mb-1 font-mono" id="total-checkin-days">0</div>
                             <div class="text-[10px] text-text/40 uppercase font-bold tracking-widest">研习天数</div>
                         </div>
                         <div class="card-premium p-6 text-center group hover:bg-primary/5 transition-colors">
-                            <div class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <div
+                                class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                 <i class="fa fa-clock-o text-primary"></i>
                             </div>
                             <div class="text-2xl font-black text-text/80 mb-1 font-mono" id="total-task-hours">0</div>
                             <div class="text-[10px] text-text/40 uppercase font-bold tracking-widest">总时数</div>
                         </div>
                         <div class="card-premium p-6 text-center group hover:bg-primary/5 transition-colors">
-                            <div class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <div
+                                class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                 <i class="fa fa-bolt text-primary"></i>
                             </div>
                             <div class="text-2xl font-black text-text/80 mb-1 font-mono" id="avg-daily-hours">0.0</div>
                             <div class="text-[10px] text-text/40 uppercase font-bold tracking-widest">日均时长</div>
                         </div>
                         <div class="card-premium p-6 text-center group hover:bg-primary/5 transition-colors">
-                            <div class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <div
+                                class="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                 <i class="fa fa-fire text-primary"></i>
                             </div>
                             <div class="text-2xl font-black text-text/80 mb-1 font-mono" id="max-streak-days">0</div>
@@ -846,14 +906,19 @@
                         <h2 class="text-2xl font-bold text-text/80 flex items-center gap-2">
                             <span class="text-2xl">🏆</span> 今日排行
                         </h2>
-                        <span class="text-sm font-medium text-text/50 md:ml-auto">上次更新: <span id="leaderboard-update-time">--:--</span></span>
+                        <span class="text-sm font-medium text-text/50 md:ml-auto">上次更新: <span
+                                id="leaderboard-update-time">--:--</span></span>
                     </div>
 
                     <div class="card-premium p-6 md:p-8">
                         <div class="flex items-center border-b border-secondary/30 pb-4 mb-4 px-2 md:px-6">
-                            <span class="w-16 md:w-24 text-left text-sm font-bold text-text/40 uppercase tracking-widest">排名</span>
-                            <span class="flex-1 text-left text-sm font-bold text-text/40 uppercase tracking-widest">学士</span>
-                            <span class="w-24 md:w-32 text-right text-sm font-bold text-text/40 uppercase tracking-widest">时长 (h)</span>
+                            <span
+                                class="w-16 md:w-24 text-left text-sm font-bold text-text/40 uppercase tracking-widest">排名</span>
+                            <span
+                                class="flex-1 text-left text-sm font-bold text-text/40 uppercase tracking-widest">学士</span>
+                            <span
+                                class="w-24 md:w-32 text-right text-sm font-bold text-text/40 uppercase tracking-widest">时长
+                                (h)</span>
                         </div>
                         <div id="leaderboard-list" class="space-y-2 min-h-[200px] flex flex-col justify-center">
                             <div class="text-center text-text/40 text-sm">正在加载全服数据...</div>
@@ -939,7 +1004,8 @@
                                 class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
                             <input type="text" id="sub-venue" placeholder="投稿目标"
                                 class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
-                            <select id="sub-status" class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
+                            <select id="sub-status"
+                                class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
                                 <option value="Submitted">Submitted（已提交）</option>
                                 <option value="Under Review">Under Review（审稿中）</option>
                                 <option value="Major Revision">Major Revision（大修）</option>
@@ -947,7 +1013,8 @@
                                 <option value="Accepted">Accepted（录用🎉）</option>
                                 <option value="Rejected">Rejected（拒稿）</option>
                             </select>
-                            <input type="date" id="sub-date" class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
+                            <input type="date" id="sub-date"
+                                class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
                             <input type="text" id="sub-notes" placeholder="审稿人意见或备注"
                                 class="w-full px-4 py-3 bg-white/50 border border-secondary/30 rounded-xl md:col-span-2 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
                         </div>
@@ -1085,7 +1152,7 @@
             const regView = document.getElementById('register-view');
             const errEl = document.getElementById('auth-error');
             const regErrEl = document.getElementById('reg-error');
-            
+
             if (errEl) errEl.classList.add('hidden');
             if (regErrEl) regErrEl.classList.add('hidden');
 
@@ -1280,7 +1347,7 @@
             }
             if (!checkinData[today].mood) checkinData[today].mood = '';
             initNavigation();
-            
+
             // 恢复计时器状态 (统一从 localStorage/服务器同步)
             const lastDate = localStorage.getItem(getUserKey('last_date'));
             if (lastDate && lastDate !== today) {
@@ -1291,8 +1358,8 @@
             localStorage.setItem(getUserKey('last_date'), today);
 
             const localAcc = parseInt(localStorage.getItem(getUserKey('accumulated_base')) || '0');
-             const serverAcc = checkinData[today]?.duration || 0;
-            
+            const serverAcc = checkinData[today]?.duration || 0;
+
             accumulatedSeconds = Math.max(localAcc, serverAcc);
             localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
 
@@ -1316,7 +1383,7 @@
             if (checkinData[today]) {
                 checkinData[today].duration = liveDur;
             }
-            
+
             const isOptOut = localStorage.getItem(getUserKey('opt_out')) === 'true';
 
             await Promise.allSettled([
@@ -1500,7 +1567,7 @@
         let currentLogId = null;
         let editingLogDate = null; // 用于存储正在编辑的日志时间戳
 
-        window.openLogsModal = function(type, id) {
+        window.openLogsModal = function (type, id) {
             currentLogType = type;
             currentLogId = id;
             const modal = document.getElementById('logs-modal');
@@ -1508,7 +1575,7 @@
             const subInputs = document.getElementById('sub-log-inputs');
             const title = document.getElementById('logs-modal-title');
             const inputTitle = document.getElementById('logs-input-title');
-            
+
             modal.classList.remove('hidden');
             cancelEdit(); // 每次打开弹窗先重置编辑状态
             if (type === 'paper') {
@@ -1527,11 +1594,11 @@
             renderTimeline();
         }
 
-        window.closeLogsModal = function() {
+        window.closeLogsModal = function () {
             document.getElementById('logs-modal').classList.add('hidden');
         }
 
-        window.renderTimeline = function() {
+        window.renderTimeline = function () {
             const container = document.getElementById('logs-timeline');
             let logs = [];
             if (currentLogType === 'paper') {
@@ -1551,11 +1618,11 @@
             const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
 
             container.innerHTML = sortedLogs.map(log => {
-                const dateStr = new Date(log.date).toLocaleDateString('zh-CN', { 
-                    year: 'numeric', month: '2-digit', day: '2-digit', 
-                    hour: '2-digit', minute: '2-digit' 
+                const dateStr = new Date(log.date).toLocaleDateString('zh-CN', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit'
                 });
-                
+
                 if (currentLogType === 'paper') {
                     return `
                     <div class="relative last:mb-0 group">
@@ -1603,26 +1670,26 @@
         }
 
         // 编辑日志
-        window.editLogEntry = function(date) {
+        window.editLogEntry = function (date) {
             editingLogDate = date;
             const containerData = currentLogType === 'paper' ? papersData : submissionsData;
             const parent = containerData.find(x => x.id === currentLogId);
             const log = parent.logs.find(l => l.date === date);
-            
+
             if (currentLogType === 'paper') {
                 document.getElementById('log-content-paper').value = log.content;
             } else {
                 document.getElementById('log-reviewer-comments').value = log.reviewerComments || '';
                 document.getElementById('log-my-response').value = log.myResponse || '';
             }
-            
+
             document.getElementById('add-log-entry-btn').textContent = '保存修改';
             document.getElementById('cancel-log-edit-btn').classList.remove('hidden');
             // 滚动到输入区域
             document.getElementById('logs-timeline-container').nextElementSibling.scrollIntoView({ behavior: 'smooth' });
         }
 
-        window.cancelEdit = function() {
+        window.cancelEdit = function () {
             editingLogDate = null;
             document.getElementById('log-content-paper').value = '';
             document.getElementById('log-reviewer-comments').value = '';
@@ -1631,7 +1698,7 @@
             document.getElementById('cancel-log-edit-btn').classList.add('hidden');
         }
 
-        window.deleteLogEntry = function(date) {
+        window.deleteLogEntry = function (date) {
             if (!confirm('确定要删除这条日志吗？')) return;
             const containerData = currentLogType === 'paper' ? papersData : submissionsData;
             const parent = containerData.find(x => x.id === currentLogId);
@@ -1648,7 +1715,7 @@
             if (!btn) return;
 
             cancelBtn.addEventListener('click', cancelEdit);
-            
+
             btn.addEventListener('click', () => {
                 if (currentLogType === 'paper') {
                     const content = document.getElementById('log-content-paper').value.trim();
@@ -1670,7 +1737,7 @@
                     if (!comments && !response) { alert('请至少填写审稿意见或回复内容'); return; }
                     const sub = submissionsData.find(s => s.id === currentLogId);
                     if (!sub.logs) sub.logs = [];
-                    
+
                     if (editingLogDate) {
                         const idx = sub.logs.findIndex(l => l.date === editingLogDate);
                         if (idx !== -1) {
@@ -1678,9 +1745,9 @@
                             sub.logs[idx].myResponse = response;
                         }
                     } else {
-                        sub.logs.push({ 
-                            date: new Date().toISOString(), 
-                            reviewerComments: comments, 
+                        sub.logs.push({
+                            date: new Date().toISOString(),
+                            reviewerComments: comments,
                             myResponse: response,
                             status: sub.status
                         });
@@ -1732,7 +1799,7 @@
             // 初始化隐身模式状态
             const isOptOut = localStorage.getItem(getUserKey('opt_out')) === 'true';
             updateOptOutUI(isOptOut);
-            
+
             const toggleBtn = document.getElementById('toggle-optout-btn');
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', () => {
@@ -1785,7 +1852,7 @@
 
                     if (item.btn === 'nav-stats') {
                         updateStatisticsCharts('week');
-                        initHeatmap(); 
+                        initHeatmap();
                     } else if (item.btn === 'nav-leaderboard') {
                         fetchLeaderboard();
                     }
@@ -1812,13 +1879,13 @@
             const listEl = document.getElementById('leaderboard-list');
             const timeEl = document.getElementById('leaderboard-update-time');
             if (!listEl) return;
-            
+
             listEl.innerHTML = '<div class="text-center text-text/40 text-sm">正在加载全服数据...</div>';
-            
+
             try {
                 const today = getTodayString();
                 const res = await apiCall(`/leaderboard/${today}`);
-                
+
                 const now = new Date();
                 timeEl.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
@@ -1826,7 +1893,7 @@
                     listEl.innerHTML = '<div class="text-center text-text/40 text-sm py-4">今日暂无排行数据</div>';
                     return;
                 }
-                
+
                 let html = '';
                 res.leaderboard.forEach((item, index) => {
                     const hrs = (item.duration / 3600).toFixed(2);
@@ -1834,14 +1901,14 @@
                     const isTop2 = index === 1;
                     const isTop3 = index === 2;
                     let rankHTML = `<span class="w-6 h-6 flex items-center justify-center rounded-full bg-secondary/50 text-text/60 text-xs font-bold">${index + 1}</span>`;
-                    
+
                     if (isTop1) rankHTML = `<span class="text-xl">🥇</span>`;
                     else if (isTop2) rankHTML = `<span class="text-xl">🥈</span>`;
                     else if (isTop3) rankHTML = `<span class="text-xl">🥉</span>`;
-                    
+
                     const meBadge = item.isMe ? `<span class="ml-2 px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded border border-primary/20">ME</span>` : '';
                     const meBg = item.isMe ? 'bg-primary/5 hover:bg-primary/10 border-primary/20' : 'bg-transparent hover:bg-secondary/10 border-transparent';
-                    
+
                     html += `
                         <div class="flex items-center px-2 md:px-6 py-3 border rounded-xl transition-colors ${meBg}">
                             <div class="w-16 md:w-24">
@@ -1856,7 +1923,7 @@
                         </div>
                     `;
                 });
-                
+
                 listEl.innerHTML = html;
             } catch (e) {
                 listEl.innerHTML = '<div class="text-center text-text/40 text-sm italic">加载失败，请重试</div>';
@@ -1884,7 +1951,7 @@
             function refreshTimerState() {
                 const activeStart = localStorage.getItem(getUserKey('active_start'));
                 const base = parseInt(localStorage.getItem(getUserKey('accumulated_base')) || '0');
-                
+
                 accumulatedSeconds = base;
                 clearInterval(timerInterval);
 
@@ -1893,7 +1960,7 @@
                     timerStartTime = parseInt(activeStart);
                     startBtn.classList.add('hidden');
                     pauseBtn.classList.remove('hidden');
-                    
+
                     timerInterval = setInterval(() => {
                         const now = Date.now();
                         const activeElapsed = Math.floor((now - timerStartTime) / 1000);
@@ -1936,10 +2003,10 @@
             function updateTimerUI(totalSecs) {
                 const formatted = formatTimerSeconds(totalSecs);
                 if (display) display.textContent = formatted;
-                
+
                 const sidebarFocus = document.getElementById('today-focus-duration');
                 if (sidebarFocus) sidebarFocus.textContent = formatted;
-                
+
                 const topFocus = document.getElementById('top-today-focus');
                 if (topFocus) topFocus.textContent = formatted;
             }
@@ -1958,10 +2025,10 @@
                     const sessionSeconds = Math.floor((now - timerStartTime) / 1000);
                     accumulatedSeconds += sessionSeconds;
                 }
-                
+
                 localStorage.removeItem(getUserKey('active_start'));
                 localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
-                
+
                 refreshTimerState();
                 saveData(); // 暂停即持久化到服务器
             });
@@ -1978,7 +2045,7 @@
                     accumulatedSeconds = 0;
                     localStorage.removeItem(getUserKey('active_start'));
                     localStorage.setItem(getUserKey('accumulated_base'), '0');
-                    
+
                     refreshTimerState();
                     saveData();
                 }
@@ -2044,7 +2111,7 @@
 
             document.querySelectorAll('.habit-checkbox').forEach(cb => {
                 const habitId = cb.getAttribute('data-habit');
-                
+
                 // 设置初始状态
                 cb.checked = activeHabits.includes(habitId);
 
@@ -2080,7 +2147,7 @@
             function renderMoodUI() {
                 const today = getTodayString();
                 const currentMood = checkinData[today]?.mood || '';
-                
+
                 container.innerHTML = moods.map(m => `
                     <button onclick="selectMood('${m}')" 
                         class="px-4 py-1.5 rounded-full border border-primary/30 text-xs font-bold transition-all
@@ -2105,11 +2172,11 @@
                     const today = getTodayString();
                     if (!phoneResistData.records) phoneResistData.records = {};
                     if (!phoneResistData.records[today]) phoneResistData.records[today] = { count: 0, times: [] };
-                    
+
                     phoneResistData.totalCount++;
                     phoneResistData.records[today].count++;
                     phoneResistData.records[today].times.push(getCurrentTimeString());
-                    
+
                     updatePhoneResistUI();
                     saveData();
                     updateTodayStatus();
@@ -2127,7 +2194,7 @@
 
             if (document.getElementById('phone-resist-count')) document.getElementById('phone-resist-count').textContent = totalCount;
             if (document.getElementById('today-phone-resist-count')) document.getElementById('today-phone-resist-count').textContent = todayCount;
-            
+
             const timesEl = document.getElementById('today-phone-resist-times');
             if (timesEl) {
                 timesEl.innerHTML = times.length ? times.map(t => `<span class="inline-block bg-warning/10 text-warning px-2 py-0.5 rounded text-[10px] mr-1 mb-1">${t}</span>`).join('') : '暂无记录';
@@ -2169,7 +2236,7 @@
 
         function renderTasks() {
             const today = getTodayString();
-            // 长期任务
+            // 长期攻关任务
             const ltContainer = document.getElementById('longterm-tasks-container');
             if (ltContainer) {
                 const sortedLT = [...taskData.longterm].sort((a, b) => (a.ddl || '9999') > (b.ddl || '9999') ? 1 : -1);
@@ -2212,7 +2279,7 @@
         };
 
         window.removeLongterm = (id) => {
-            if (confirm('确定移除此长期任务？')) {
+            if (confirm('确定移除此长期攻关任务？')) {
                 taskData.longterm = taskData.longterm.filter(x => x.id !== id);
                 renderTasks(); saveData();
             }
@@ -2247,7 +2314,7 @@
             const today = getTodayString();
             const daily = taskData.daily[today] || [];
             const all = [...daily]; // 只计算今日任务
-            
+
             if (all.length === 0) {
                 if (document.getElementById('task-progress-percent')) document.getElementById('task-progress-percent').textContent = '0%';
                 if (document.getElementById('task-progress-fill')) document.getElementById('task-progress-fill').style.width = '0%';
@@ -2265,35 +2332,35 @@
             const titleEl = document.getElementById('heatmap-month-title');
             const displayMonth = document.getElementById('custom-month-display');
             if (!container) return;
-            
+
             const year = currentStatsMonth.getFullYear();
             const month = currentStatsMonth.getMonth(); // 0-11
-            
+
             // 更新 UI 标识
             if (titleEl) titleEl.textContent = `${year}年${month + 1}月`;
             if (displayMonth) {
                 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 displayMonth.textContent = `${monthNames[month]} ${year}`;
             }
-            
+
             const firstDay = new Date(year, month, 1).getDay(); // 当月第一天是星期几 (0是周日)
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
+
             // 计算需要的空白前缀 (将周一作为一周的第一天)
             const emptyDays = firstDay === 0 ? 6 : firstDay - 1;
-            
+
             let html = '';
             // 添加星期栏
             const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
             weekdays.forEach(day => {
                 html += `<div class="text-center text-[10px] font-bold text-text/70 mb-2 uppercase tracking-widest">${day}</div>`;
             });
-            
+
             // 空白占位格 (来自上个月)
             for (let i = 0; i < emptyDays; i++) {
                 html += `<div class="aspect-square rounded-2xl bg-transparent"></div>`;
             }
-            
+
             let monthTotalSeconds = 0;
             let monthStudyDays = 0;
 
@@ -2301,12 +2368,12 @@
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 const dayData = checkinData[dateStr] || { duration: 0 };
                 const hours = (dayData.duration || 0) / 3600;
-                
+
                 if (hours > 0) {
                     monthTotalSeconds += dayData.duration;
                     monthStudyDays++;
                 }
-                
+
                 // 增加 0 小时格子的对比度，确保文字清晰且有辨识度
                 let bgColor = 'bg-[#F2EFE9] text-text/60 border border-secondary/30';
                 if (hours > 0) bgColor = 'bg-[#E6EDE4] text-text/70 border-none';
@@ -2320,7 +2387,7 @@
                 </div>`;
             }
             container.innerHTML = html;
-            
+
             // 更新卡片底部的统计信息
             const footerEl = document.getElementById('heatmap-footer');
             if (footerEl) {
@@ -2335,11 +2402,11 @@
             const dates = Object.keys(checkinData)
                 .filter(d => d.startsWith(targetYearMonth) && checkinData[d].duration > 0)
                 .sort();
-                
+
             if (dates.length === 0) return 0;
             let max = 0, curr = 1;
             for (let i = 1; i < dates.length; i++) {
-                const d1 = new Date(dates[i-1]);
+                const d1 = new Date(dates[i - 1]);
                 const d2 = new Date(dates[i]);
                 if ((d2 - d1) / (1000 * 3600 * 24) === 1) curr++;
                 else { max = Math.max(max, curr); curr = 1; }
@@ -2476,9 +2543,9 @@
             const popover = document.getElementById('custom-month-popover');
             const popoverYear = document.getElementById('popover-year-display');
             const monthsGrid = document.getElementById('popover-months-grid');
-            
+
             let popoverCurrentYear = currentStatsMonth.getFullYear();
-            
+
             const renderPopoverMonths = () => {
                 if (!popoverYear || !monthsGrid) return;
                 popoverYear.textContent = popoverCurrentYear;
@@ -2488,7 +2555,7 @@
                     const activeClass = isSelected ? 'bg-primary text-white shadow-sm' : 'hover:bg-secondary/30 text-text/80';
                     return `<button class="p-2 rounded-xl text-xs font-bold transition-colors ${activeClass}" data-month="${idx}">${m}</button>`;
                 }).join('');
-                
+
                 monthsGrid.querySelectorAll('button').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const m = parseInt(e.target.getAttribute('data-month'));
@@ -2506,13 +2573,13 @@
                     renderPopoverMonths();
                     popover.classList.toggle('hidden');
                 });
-                
+
                 document.getElementById('popover-prev-year')?.addEventListener('click', (e) => {
                     e.stopPropagation();
                     popoverCurrentYear--;
                     renderPopoverMonths();
                 });
-                
+
                 document.getElementById('popover-next-year')?.addEventListener('click', (e) => {
                     e.stopPropagation();
                     popoverCurrentYear++;
@@ -2558,7 +2625,7 @@
             const phoneData = preparePhoneResistChartData(startDate, endDate, labels);
             const moodData = prepareMoodChartData(startDate, endDate);
             const habitData = prepareHabitChartData(startDate, endDate);
-            
+
             updateStudyTrendChart(labels, studyTrendData);
             updateScheduleConsistencyChart(scheduleData);
             updatePhoneResistChart(labels, phoneData);
@@ -2632,7 +2699,7 @@
             const ctx = document.getElementById('mood-distribution-chart');
             if (!ctx) return;
             if (window.moodChart) window.moodChart.destroy();
-            
+
             // 使用 Morandi 配色方案
             const colors = [
                 '#E9E2D8', // 糟糕 - 米色
@@ -2679,7 +2746,7 @@
             while (curr <= endDate) {
                 const ds = curr.toISOString().split('T')[0];
                 const habits = checkinData[ds]?.habits || [];
-                habits.forEach(h => { if(counts[h] !== undefined) counts[h]++ });
+                habits.forEach(h => { if (counts[h] !== undefined) counts[h]++ });
                 curr.setDate(curr.getDate() + 1);
             }
             return {
@@ -2692,7 +2759,7 @@
             const ctx = document.getElementById('habit-radar-chart');
             if (!ctx) return;
             if (window.habitChart) window.habitChart.destroy();
-            
+
             window.habitChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
@@ -2714,8 +2781,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        r: { 
-                            beginAtZero: true, 
+                        r: {
+                            beginAtZero: true,
                             ticks: { stepSize: 1, display: false },
                             grid: { color: '#F2EFE9' },
                             angleLines: { color: '#E9E2D8' },
@@ -2732,7 +2799,7 @@
             const startDate = new Date(year, month, 1);
             const endDate = new Date(year, month + 1, 0); // 月末最后一天
             const daysInMonth = endDate.getDate();
-            
+
             let labels = [];
             for (let i = 1; i <= daysInMonth; i++) {
                 labels.push(`${month + 1}/${i}`);
@@ -2753,21 +2820,21 @@
         }
 
         function prepareScheduleConsistencyData() {
-            const counts = [0, 0, 0, 0, 0, 0, 0]; 
+            const counts = [0, 0, 0, 0, 0, 0, 0];
             const days = [0, 0, 0, 0, 0, 0, 0];
             const targetYearMonth = `${currentStatsMonth.getFullYear()}-${String(currentStatsMonth.getMonth() + 1).padStart(2, '0')}`;
-            
+
             Object.keys(checkinData).forEach(dateStr => {
                 if (!dateStr.startsWith(targetYearMonth)) return; // 仅过滤当前月
-                
-                const day = new Date(dateStr).getDay(); 
-                const index = day === 0 ? 6 : day - 1; 
-                
+
+                const day = new Date(dateStr).getDay();
+                const index = day === 0 ? 6 : day - 1;
+
                 const phases = checkinData[dateStr].phases || [];
                 counts[index] += phases.length;
                 days[index]++;
             });
-            
+
             return counts.map((count, i) => days[i] > 0 ? (count / days[i]).toFixed(1) : 0);
         }
 
@@ -2832,14 +2899,14 @@
 
         function updateSummaryStatistics() {
             const targetYearMonth = `${currentStatsMonth.getFullYear()}-${String(currentStatsMonth.getMonth() + 1).padStart(2, '0')}`;
-            
+
             const monthData = Object.entries(checkinData)
                 .filter(([dateStr]) => dateStr.startsWith(targetYearMonth))
                 .map(([_, data]) => data);
-                
+
             const totalHours = monthData.reduce((sum, d) => sum + (d.duration || 0), 0) / 3600;
             const studyDays = monthData.filter(d => d.duration > 0).length;
-            
+
             if (document.getElementById('total-checkin-days')) document.getElementById('total-checkin-days').textContent = studyDays;
             if (document.getElementById('total-task-hours')) document.getElementById('total-task-hours').textContent = totalHours.toFixed(1);
             if (document.getElementById('avg-daily-hours')) document.getElementById('avg-daily-hours').textContent = studyDays > 0 ? (totalHours / studyDays).toFixed(1) : '0.0';
@@ -2848,7 +2915,7 @@
 
         function updateTodayStatus() {
             const today = getTodayString();
-            
+
             // 侧边栏手机克制
             const phoneStatus = document.getElementById('today-phone-count');
             if (phoneStatus) {
@@ -2872,13 +2939,13 @@
                     <div class="w-2 h-2 rounded-full ${phases.includes(p) ? 'bg-primary' : 'bg-secondary'}"></div>
                 `).join('');
             }
-            
+
             // 侧边栏专注时长
             const sidebarFocus = document.getElementById('today-focus-duration');
             if (sidebarFocus) {
                 sidebarFocus.textContent = formatTimerSeconds(accumulatedSeconds);
             }
-            
+
             // 顶栏今日专注
             const topFocus = document.getElementById('top-today-focus');
             if (topFocus) topFocus.textContent = formatTimerSeconds(accumulatedSeconds);
@@ -2896,7 +2963,7 @@
                     <i class="fa fa-times text-lg"></i>
                 </button>
             </div>
-            
+
             <div id="logs-timeline-container" class="flex-1 overflow-y-auto pr-2 mb-4">
                 <div id="logs-timeline" class="space-y-6 relative ml-4 border-l-2 border-gray-100 pl-6 pb-4 pt-2">
                     <!-- 时间轴将由 JS 动态生成 -->
@@ -2907,27 +2974,32 @@
                 <h4 id="logs-input-title" class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1">
                     <i class="fa fa-plus-circle"></i>新增周记/心得
                 </h4>
-                
+
                 <div id="paper-log-inputs" class="hidden">
-                    <textarea id="log-content-paper" placeholder="输入本周研究心得、实验进展或遇到的问题..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-24 text-sm"></textarea>
+                    <textarea id="log-content-paper" placeholder="输入本周研究心得、实验进展或遇到的问题..."
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-24 text-sm"></textarea>
                 </div>
-                
+
                 <div id="sub-log-inputs" class="hidden space-y-3">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase font-bold ml-1">审稿意见</span>
-                            <textarea id="log-reviewer-comments" placeholder="审稿人反馈的具体意见..." class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-20 text-sm"></textarea>
+                            <textarea id="log-reviewer-comments" placeholder="审稿人反馈的具体意见..."
+                                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-20 text-sm"></textarea>
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 uppercase font-bold ml-1">我的回复/修改</span>
-                            <textarea id="log-my-response" placeholder="记录你是如何修改或解释的..." class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-20 text-sm"></textarea>
+                            <textarea id="log-my-response" placeholder="记录你是如何修改或解释的..."
+                                class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 h-20 text-sm"></textarea>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="flex justify-end mt-4 gap-3">
-                    <button id="cancel-log-edit-btn" class="hidden text-gray-500 hover:text-gray-700 font-medium text-sm px-4">取消编辑</button>
-                    <button id="add-log-entry-btn" class="bg-primary hover:bg-primary/90 text-white py-2 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all text-sm">发布记录</button>
+                    <button id="cancel-log-edit-btn"
+                        class="hidden text-gray-500 hover:text-gray-700 font-medium text-sm px-4">取消编辑</button>
+                    <button id="add-log-entry-btn"
+                        class="bg-primary hover:bg-primary/90 text-white py-2 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all text-sm">发布记录</button>
                 </div>
             </div>
         </div>
