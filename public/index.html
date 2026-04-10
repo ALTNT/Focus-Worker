@@ -316,6 +316,94 @@
                         <p class="mt-6 text-[10px] text-text/40 font-bold uppercase tracking-widest">* 专注时长将自动累计至今日研习统计</p>
                     </div>
 
+                    <!-- 三段式研习 与 每日必打卡 (双列布局) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 三段式研习打卡 -->
+                        <div class="card-premium p-6">
+                            <h2 class="text-sm font-bold text-text/80 flex items-center gap-2 mb-4 border-l-4 border-primary pl-2">
+                                <span class="text-lg">🎯</span> 三段式研习打卡
+                            </h2>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg">🌅</span>
+                                        <span class="text-sm font-bold text-text/80">晨间专注</span>
+                                    </div>
+                                    <button id="phase-morning-btn" class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
+                                        <i class="fa fa-thumb-tack"></i> 打卡
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg">☕</span>
+                                        <span class="text-sm font-bold text-text/80">午后研习</span>
+                                    </div>
+                                    <button id="phase-afternoon-btn" class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
+                                        <i class="fa fa-thumb-tack"></i> 打卡
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:border-primary/30 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg">🌙</span>
+                                        <span class="text-sm font-bold text-text/80">晚间沉浸</span>
+                                    </div>
+                                    <button id="phase-evening-btn" class="text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1">
+                                        <i class="fa fa-thumb-tack"></i> 打卡
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 每日必打卡 -->
+                        <div class="card-premium p-6">
+                            <h2 class="text-sm font-bold text-text/80 flex items-center gap-2 mb-4 border-l-4 border-success pl-2">
+                                <span class="text-lg">✅</span> 每日必打卡
+                            </h2>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg">📖</span>
+                                        <span class="text-sm font-bold text-text/80">读书</span>
+                                    </div>
+                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <input type="checkbox" class="hidden peer habit-checkbox" data-habit="reading">
+                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </label>
+                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg">📝</span>
+                                        <span class="text-sm font-bold text-text/80">单词</span>
+                                    </div>
+                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <input type="checkbox" class="hidden peer habit-checkbox" data-habit="vocab">
+                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </label>
+                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg">📄</span>
+                                        <span class="text-sm font-bold text-text/80">文献</span>
+                                    </div>
+                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <input type="checkbox" class="hidden peer habit-checkbox" data-habit="paper">
+                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </label>
+                                <label class="flex items-center justify-between border border-secondary/40 rounded-xl p-3 hover:bg-success/5 transition-colors cursor-pointer group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg">🏃</span>
+                                        <span class="text-sm font-bold text-text/80">运动</span>
+                                    </div>
+                                    <div class="w-5 h-5 rounded border-2 border-secondary/60 flex items-center justify-center text-white peer-checked:bg-success peer-checked:border-success transition-colors">
+                                        <input type="checkbox" class="hidden peer habit-checkbox" data-habit="exercise">
+                                        <i class="fa fa-check text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 任务清单卡片 -->
                     <div class="card-premium p-8">
                         <div class="flex items-center justify-between mb-8">
@@ -368,45 +456,6 @@
                         </div>
                     </div>
 
-                    <!-- 三段式打卡 (精简版) -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="card-premium p-4 flex items-center justify-between group">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl group-hover:scale-110 transition-transform">🌅</span>
-                                <div>
-                                    <h4 class="text-sm font-bold text-text/80">晨间</h4>
-                                    <p class="text-[10px] text-text/40">06:00 - 12:00</p>
-                                </div>
-                            </div>
-                            <button id="phase-morning-btn" class="w-8 h-8 rounded-full border-2 border-secondary flex items-center justify-center text-secondary hover:border-primary hover:text-primary transition-all">
-                                <i class="fa fa-check"></i>
-                            </button>
-                        </div>
-                        <div class="card-premium p-4 flex items-center justify-between group">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl group-hover:scale-110 transition-transform">☕</span>
-                                <div>
-                                    <h4 class="text-sm font-bold text-text/80">午后</h4>
-                                    <p class="text-[10px] text-text/40">12:00 - 17:00</p>
-                                </div>
-                            </div>
-                            <button id="phase-afternoon-btn" class="w-8 h-8 rounded-full border-2 border-secondary flex items-center justify-center text-secondary hover:border-primary hover:text-primary transition-all">
-                                <i class="fa fa-check"></i>
-                            </button>
-                        </div>
-                        <div class="card-premium p-4 flex items-center justify-between group">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl group-hover:scale-110 transition-transform">🌙</span>
-                                <div>
-                                    <h4 class="text-sm font-bold text-text/80">晚间</h4>
-                                    <p class="text-[10px] text-text/40">17:00 - 23:00</p>
-                                </div>
-                            </div>
-                            <button id="phase-evening-btn" class="w-8 h-8 rounded-full border-2 border-secondary flex items-center justify-center text-secondary hover:border-primary hover:text-primary transition-all">
-                                <i class="fa fa-check"></i>
-                            </button>
-                        </div>
-                    </div>
                 </section>
 
                 <!-- 手机克制模块 -->
@@ -712,11 +761,11 @@
 
                     <!-- 打卡统计图表 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="card-premium p-6">
+                        <div class="card-premium p-6 md:col-span-2">
                             <h3 class="text-sm font-bold text-text/70 mb-6 flex items-center gap-2">
                                 <i class="fa fa-line-chart text-primary"></i> 每日学习时长趋势 (h)
                             </h3>
-                            <div class="h-64">
+                            <div class="h-64 md:h-80">
                                 <canvas id="checkin-rate-chart"></canvas>
                             </div>
                         </div>
@@ -745,6 +794,15 @@
                             </h3>
                             <div class="h-64">
                                 <canvas id="mood-distribution-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card-premium p-6">
+                            <h3 class="text-sm font-bold text-text/70 mb-6 flex items-center gap-2">
+                                <i class="fa fa-bullseye text-success"></i> 每日必打卡完成度
+                            </h3>
+                            <div class="h-64">
+                                <canvas id="habit-radar-chart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -1239,6 +1297,7 @@
             localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
 
             initFocusTimer();
+            initHabitCheckin();
             initPhoneResist();
             initTaskManagement();
             initHeatmap();
@@ -1966,14 +2025,39 @@
                 const btn = document.getElementById(`phase-${id}-btn`);
                 if (!btn) return;
                 if (phases.includes(id)) {
-                    btn.classList.add('bg-primary', 'text-white', 'border-primary');
-                    btn.classList.remove('text-secondary', 'border-secondary');
-                    btn.innerHTML = '<i class="fa fa-check animate-bounce"></i>';
+                    btn.className = 'text-xs bg-success/20 text-success border border-success/30 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all';
+                    btn.innerHTML = '<i class="fa fa-check"></i> 已完成';
                 } else {
-                    btn.classList.remove('bg-primary', 'text-white', 'border-primary');
-                    btn.classList.add('text-secondary', 'border-secondary');
-                    btn.innerHTML = '<i class="fa fa-check"></i>';
+                    btn.className = 'text-xs bg-secondary/30 text-text/50 font-bold px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all flex items-center gap-1 cursor-pointer border border-transparent';
+                    btn.innerHTML = '<i class="fa fa-thumb-tack"></i> 打卡';
                 }
+            });
+        }
+
+        // --- 每日必打卡 ---
+        function initHabitCheckin() {
+            const today = getTodayString();
+            if (!checkinData[today].habits) {
+                checkinData[today].habits = [];
+            }
+            const activeHabits = checkinData[today].habits;
+
+            document.querySelectorAll('.habit-checkbox').forEach(cb => {
+                const habitId = cb.getAttribute('data-habit');
+                
+                // 设置初始状态
+                cb.checked = activeHabits.includes(habitId);
+
+                // 绑定事件
+                cb.addEventListener('change', (e) => {
+                    const isChecked = e.target.checked;
+                    if (isChecked && !activeHabits.includes(habitId)) {
+                        activeHabits.push(habitId);
+                    } else if (!isChecked && activeHabits.includes(habitId)) {
+                        checkinData[today].habits = activeHabits.filter(h => h !== habitId);
+                    }
+                    saveData();
+                });
             });
         }
 
@@ -2473,11 +2557,13 @@
             const scheduleData = prepareScheduleConsistencyData();
             const phoneData = preparePhoneResistChartData(startDate, endDate, labels);
             const moodData = prepareMoodChartData(startDate, endDate);
+            const habitData = prepareHabitChartData(startDate, endDate);
             
             updateStudyTrendChart(labels, studyTrendData);
             updateScheduleConsistencyChart(scheduleData);
             updatePhoneResistChart(labels, phoneData);
             updateMoodChart(moodData);
+            updateHabitChart(habitData);
         }
 
         function preparePhoneResistChartData(startDate, endDate, labels) {
@@ -2583,6 +2669,59 @@
                         }
                     },
                     cutout: '70%'
+                }
+            });
+        }
+
+        function prepareHabitChartData(startDate, endDate) {
+            const counts = { reading: 0, vocab: 0, paper: 0, exercise: 0 };
+            let curr = new Date(startDate);
+            while (curr <= endDate) {
+                const ds = curr.toISOString().split('T')[0];
+                const habits = checkinData[ds]?.habits || [];
+                habits.forEach(h => { if(counts[h] !== undefined) counts[h]++ });
+                curr.setDate(curr.getDate() + 1);
+            }
+            return {
+                labels: ['读书', '单词', '文献', '运动'],
+                data: [counts.reading, counts.vocab, counts.paper, counts.exercise]
+            };
+        }
+
+        function updateHabitChart(habitData) {
+            const ctx = document.getElementById('habit-radar-chart');
+            if (!ctx) return;
+            if (window.habitChart) window.habitChart.destroy();
+            
+            window.habitChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: habitData.labels,
+                    datasets: [{
+                        label: '完成次数',
+                        data: habitData.data,
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10b981',
+                        pointHoverBackgroundColor: '#10b981',
+                        pointHoverBorderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1, display: false },
+                            grid: { color: '#F2EFE9' },
+                            angleLines: { color: '#E9E2D8' },
+                            pointLabels: { font: { size: 12, weight: 'bold' }, color: '#9BB796' }
+                        }
+                    }
                 }
             });
         }
