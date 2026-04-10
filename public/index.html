@@ -916,6 +916,16 @@
         let timerStartTime = null;  // 当前会话开始的时间戳 (ms)
         let accumulatedSeconds = 0; // 今日已累计完成的秒数 (base)
         let isTimerRunning = false;
+        let syncCounter = 0; // 自动同步计数器
+
+        // 获取当前真实的专注总时长 (包含正在运行的部分)
+        function getLiveDuration() {
+            if (isTimerRunning && timerStartTime) {
+                const activeElapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+                return accumulatedSeconds + activeElapsed;
+            }
+            return accumulatedSeconds;
+        }
 
         // 三段打卡配置
         const phaseConfig = [
@@ -1193,7 +1203,7 @@
         async function saveData() {
             const today = getTodayString();
             if (checkinData[today]) {
-                checkinData[today].duration = accumulatedSeconds;
+                checkinData[today].duration = getLiveDuration();
             }
             
             await Promise.all([
@@ -1703,6 +1713,13 @@
                             return;
                         }
 
+                        // 3. 周期性自动保存 (每 3 分钟同步一次到服务器)
+                        syncCounter++;
+                        if (syncCounter >= 180) {
+                            syncCounter = 0;
+                            saveData(); // 静默同步
+                        }
+
                         updateTimerUI(total);
                     }, 1000);
                 } else {
@@ -1745,6 +1762,13 @@
                 
                 refreshTimerState();
                 saveData(); // 暂停即持久化到服务器
+            });
+
+            // 监听窗口关闭/刷新事件，做最后一次同步
+            window.addEventListener('beforeunload', () => {
+                if (isTimerRunning) {
+                    saveData();
+                }
             });
 
             resetBtn.addEventListener('click', () => {
