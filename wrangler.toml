@@ -2,6 +2,11 @@ name = "phd-tracker"
 main = "src/index.js"
 compatibility_date = "2024-04-05"
 
+# 补充域名配置，解决部署警告
+[[routes]]
+pattern = "track.alyy.de"
+custom_domain = true
+
 [site]
 bucket = "./public"
 

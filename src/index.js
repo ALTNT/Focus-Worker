@@ -50,6 +50,27 @@ async function _sha256(uint8) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
+// AWS v4 Helper Functions
+async function hmac(key, data) {
+  const encoder = new TextEncoder();
+  const k = typeof key === 'string' ? encoder.encode(key) : key;
+  const d = typeof data === 'string' ? encoder.encode(data) : data;
+  const cryptoKey = await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return await crypto.subtle.sign('HMAC', cryptoKey, d);
+}
+
+async function getSignatureKey(key, dateStamp, regionName, serviceName) {
+  const kDate = await hmac('AWS4' + key, dateStamp);
+  const kRegion = await hmac(kDate, regionName);
+  const kService = await hmac(kRegion, serviceName);
+  const kSigning = await hmac(kService, 'aws4_request');
+  return kSigning;
+}
+
+function hex(buffer) {
+  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function checkRateLimit(c, key, limit = 5) {
   const ip = c.req.header('CF-Connecting-IP') || 'local'
   const fullKey = `rate:${key}:${ip}`
@@ -173,6 +194,70 @@ app.post('/api/user/change-password', async (c) => {
   await db.put(`user:${username}`, JSON.stringify(userData))
 
   return c.json({ success: true, message: '密码修改成功' })
+})
+
+// S3 Upload API (Proxy to hi168.com)
+app.post('/api/user/upload', async (c) => {
+  const username = c.get('username')
+  const formData = await c.req.formData()
+  const file = formData.get('file')
+  
+  if (!file || !(file instanceof File)) {
+    return c.json({ error: 'No file uploaded' }, 400)
+  }
+
+  const accessKey = c.env.S3_ACCESS_KEY
+  const secretKey = c.env.S3_SECRET_KEY
+
+  if (!accessKey || !secretKey) {
+    console.error('Missing S3 credentials in environment variables.')
+    return c.json({ error: 'Server configuration error: Missing S3 credentials.' }, 500)
+  }
+
+  const bucket = 'hi168-28696-9140n2xv'
+  const endpoint = 's3.hi168.com'
+  const region = 'us-east-1' // standard for many S3 clones
+  const service = 's3'
+  
+  const fileName = `${username}/${Date.now()}-${file.name}`
+  const fileBuffer = await file.arrayBuffer()
+  const amzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '')
+  const dateStamp = amzDate.slice(0, 8)
+  
+  const canonicalUri = `/${bucket}/${fileName}`
+  const canonicalQuerystring = ''
+  const canonicalHeaders = `host:${endpoint}\nx-amz-content-sha256:UNSIGNED-PAYLOAD\nx-amz-date:${amzDate}\n`
+  const signedHeaders = 'host;x-amz-content-sha256;x-amz-date'
+  const payloadHash = 'UNSIGNED-PAYLOAD'
+  const canonicalRequest = `PUT\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`
+  
+  const algorithm = 'AWS4-HMAC-SHA256'
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`
+  const stringToSign = `${algorithm}\n${amzDate}\n${credentialScope}\n${hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest)))}`
+  
+  const signingKey = await getSignatureKey(secretKey, dateStamp, region, service)
+  const signature = hex(await hmac(signingKey, stringToSign))
+  const authorizationHeader = `${algorithm} Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`
+
+  const url = `https://${endpoint}${canonicalUri}`
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': authorizationHeader,
+      'x-amz-date': amzDate,
+      'x-amz-content-sha256': payloadHash,
+      'Content-Type': file.type || 'application/octet-stream'
+    },
+    body: fileBuffer
+  })
+
+  if (response.ok) {
+    return c.json({ success: true, url })
+  } else {
+    const errorText = await response.text()
+    console.error('S3 Upload Error:', errorText)
+    return c.json({ error: 'Upload failed', detail: errorText }, 500)
+  }
 })
 
 // Data API
