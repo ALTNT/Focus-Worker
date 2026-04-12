@@ -31,7 +31,15 @@
                         text: '#2E3A3F',
                         success: '#9ABF9A',
                         warning: '#E5DDD2',
-                        danger: '#C07F6E'
+                        danger: '#C07F6E',
+                        // 热力图专属梯阶 (增加饱和度)
+                        heatmap: {
+                            0: '#F2EFE9', // 0h: 浅米
+                            1: '#DCE7D3', // >0h: 浅绿 (更亮)
+                            2: '#B7C9B5', // >2h: 主题绿 (原色)
+                            3: '#9ABF9A', // >5h: 进阶绿 (成功绿)
+                            4: '#6B8E6B'  // >8h: 极深绿 (深莫兰迪)
+                        }
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -517,24 +525,27 @@
                         <!-- 今日任务清单 -->
                         <div>
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                <h3 class="text-xs font-black text-text/40 uppercase tracking-widest flex items-center gap-2">
+                                <h3
+                                    class="text-xs font-black text-text/40 uppercase tracking-widest flex items-center gap-2">
                                     <i class="fa fa-pencil-square-o"></i> <span id="task-list-title">今日任务清单</span>
                                 </h3>
                                 <div class="flex items-center gap-2">
-                                    <div class="bg-white/50 border border-secondary/30 rounded-xl px-2 py-1 flex items-center gap-1 shadow-sm">
+                                    <div
+                                        class="bg-white/50 border border-secondary/30 rounded-xl px-2 py-1 flex items-center gap-1 shadow-sm">
                                         <i class="fa fa-calendar text-text/30 text-[10px]"></i>
-                                        <input type="date" id="task-date-picker" 
+                                        <input type="date" id="task-date-picker"
                                             class="text-[10px] font-bold text-text/60 focus:outline-none bg-transparent"
                                             onchange="changeViewingDate(this.value)">
                                     </div>
-                                    <button id="back-to-today-btn" onclick="resetToToday()" 
+                                    <button id="back-to-today-btn" onclick="resetToToday()"
                                         class="hidden px-2 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-lg hover:bg-primary/20 transition-all uppercase">
                                         Today
                                     </button>
                                 </div>
                             </div>
-                            
-                            <div id="history-notice" class="hidden mb-4 p-3 bg-secondary/10 rounded-2xl border border-secondary/20 flex items-center gap-2">
+
+                            <div id="history-notice"
+                                class="hidden mb-4 p-3 bg-secondary/10 rounded-2xl border border-secondary/20 flex items-center gap-2">
                                 <i class="fa fa-archive text-text/30 text-xs"></i>
                                 <p class="text-[11px] font-bold text-text/50">正在查看历史存档（只读模式）</p>
                             </div>
@@ -1360,7 +1371,7 @@
             async function handleImageUpload(file) {
                 const previewContainer = document.getElementById('log-image-previews');
                 const saveBtn = document.getElementById('save-log-btn');
-                
+
                 if (!previewContainer || !saveBtn) return;
 
                 const id = Date.now() + Math.random();
@@ -1373,17 +1384,17 @@
                 try {
                     saveBtn.disabled = true;
                     saveBtn.textContent = '图片上传中...';
-                    
+
                     const formData = new FormData();
                     formData.append('file', file);
-                    
+
                     const res = await fetch('/api/user/upload', {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${sessionStorage.getItem('auth_token')}` },
                         body: formData
                     });
                     const data = await res.json();
-                    
+
                     if (data.success) {
                         currentTaskContext.images.push(data.url);
                         previewItem.innerHTML = `<img src="${data.url}" class="w-full h-full object-cover">`;
@@ -2102,9 +2113,15 @@
         function changeViewingDate(date) {
             if (!date) return;
             viewingDate = date;
+
+            const today = getTodayString();
+            const isToday = date === today;
             
-            const isToday = date === getTodayString();
-            document.getElementById('task-list-title').textContent = isToday ? '今日任务列表' : `存档任务 (${date})`;
+            // 同步日期选择器的值
+            const picker = document.getElementById('task-date-picker');
+            if (picker) picker.value = date;
+
+            document.getElementById('task-list-title').textContent = isToday ? '今日任务清单' : `存档任务 (${date})`;
             document.getElementById('back-to-today-btn').classList.toggle('hidden', isToday);
             document.getElementById('history-notice').classList.toggle('hidden', isToday);
             
@@ -2112,6 +2129,8 @@
             document.getElementById('daily-task-input-area')?.classList.toggle('hidden', !isToday);
             
             renderTasks();
+            updateTodayStatus(); // 同步侧边栏数据
+            initHeatmap(); // 重新渲染热力图以更新选中状态 (Active Ring)
         }
 
         function resetToToday() {
@@ -2783,7 +2802,7 @@
             const today = getTodayString();
             const activeDate = viewingDate || today;
             const daily = taskData.daily[activeDate] || [];
-            const all = [...daily]; 
+            const all = [...daily];
 
             if (all.length === 0) {
                 if (document.getElementById('task-progress-percent')) document.getElementById('task-progress-percent').textContent = '0%';
@@ -2844,14 +2863,28 @@
                     monthStudyDays++;
                 }
 
-                // 增加 0 小时格子的对比度，确保文字清晰且有辨识度
-                let bgColor = 'bg-[#F2EFE9] text-text/60 border border-secondary/30';
-                if (hours > 0) bgColor = 'bg-[#E6EDE4] text-text/70 border-none';
-                if (hours > 2) bgColor = 'bg-[#C9DAC4] text-text/80 border-none';
-                if (hours > 5) bgColor = 'bg-[#ACC7A4] text-[#2E3A3F] border-none';
-                if (hours > 8) bgColor = 'bg-[#8FB484] text-[#2E3A3F] border-none';
+                const isActive = dateStr === (viewingDate || getTodayString());
+                
+                // 采用行内样式以绕过 Tailwind CDN 的类名扫描限制，确保颜色 100% 显示
+                const colors = [
+                    { bg: '#F2EFE9', text: 'rgba(46, 58, 63, 0.6)', border: '1px solid rgba(233, 226, 216, 0.5)' }, // 0h
+                    { bg: '#DCE7D3', text: 'rgba(46, 58, 63, 0.8)', border: 'none' }, // >0h
+                    { bg: '#B7C9B5', text: 'rgba(46, 58, 63, 0.8)', border: 'none' }, // >2h
+                    { bg: '#9ABF9A', text: '#ffffff', border: 'none' }, // >5h
+                    { bg: '#6B8E6B', text: '#ffffff', border: 'none' }  // >8h
+                ];
+                let level = 0;
+                if (hours > 0) level = 1;
+                if (hours > 2) level = 2;
+                if (hours > 5) level = 3;
+                if (hours > 8) level = 4;
 
-                html += `<div class="aspect-square flex flex-col items-center justify-center rounded-2xl ${bgColor} cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all">
+                const style = colors[level];
+                const activeClass = isActive ? 'ring-2 ring-primary ring-offset-2 scale-105 z-10' : '';
+
+                html += `<div onclick="changeViewingDate('${dateStr}')" 
+                    style="background-color: ${style.bg}; color: ${style.text}; border: ${style.border};"
+                    class="aspect-square flex flex-col items-center justify-center rounded-2xl ${activeClass} cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all">
                     <span class="font-bold text-sm">${i}</span>
                     <span class="text-[9px] font-medium opacity-80">${hours.toFixed(1)}h</span>
                 </div>`;
@@ -3387,39 +3420,45 @@
         function updateTodayStatus() {
             const today = getTodayString();
 
+            // 侧边栏统计信息 (自动适配当前查看的日期)
+            const activeDate = viewingDate || today;
+
             // 侧边栏手机克制
             const phoneStatus = document.getElementById('today-phone-count');
             if (phoneStatus) {
-                const count = phoneResistData.records?.[today]?.count || 0;
+                const count = phoneResistData.records?.[activeDate]?.count || 0;
                 phoneStatus.textContent = `${count}次`;
             }
 
             // 侧边栏正在进行任务
             const activeTaskStatus = document.getElementById('today-active-task');
             if (activeTaskStatus) {
-                const dailyTasks = taskData.daily[today] || [];
+                const dailyTasks = taskData.daily[activeDate] || [];
                 const activeTask = dailyTasks.find(t => !t.completed);
                 activeTaskStatus.textContent = activeTask ? activeTask.name : '-';
             }
 
             // 侧边栏打卡点点
             const phaseDots = document.getElementById('phase-mini-dots');
-            if (phaseDots && checkinData[today]?.phases) {
-                const phases = checkinData[today].phases;
+            if (phaseDots && checkinData[activeDate]?.phases) {
+                const phases = checkinData[activeDate].phases;
                 phaseDots.innerHTML = ['morning', 'afternoon', 'evening'].map(p => `
                     <div class="w-2 h-2 rounded-full ${phases.includes(p) ? 'bg-primary' : 'bg-secondary'}"></div>
                 `).join('');
             }
 
-            // 侧边栏专注时长
+            // 专注时长 (仅今日显示实时计时，历史显示总计)
+            const duration = checkinData[activeDate]?.duration || 0;
             const sidebarFocus = document.getElementById('today-focus-duration');
             if (sidebarFocus) {
-                sidebarFocus.textContent = formatTimerSeconds(accumulatedSeconds);
+                sidebarFocus.textContent = activeDate === today ? formatTimerSeconds(accumulatedSeconds) : formatTimerSeconds(duration);
             }
 
-            // 顶栏今日专注
+            // 顶栏同步 (仅当查看今日时显示实时计时器，否则显示当日总计)
             const topFocus = document.getElementById('top-today-focus');
-            if (topFocus) topFocus.textContent = formatTimerSeconds(accumulatedSeconds);
+            if (topFocus) {
+                topFocus.textContent = activeDate === today ? formatTimerSeconds(accumulatedSeconds) : formatTimerSeconds(duration);
+            }
         }
 
         // --- 任务日志与编辑逻辑 ---
@@ -3428,8 +3467,8 @@
         window.openTaskLogModal = (id, type) => {
             setModalState(true, 'task-log-modal');
             currentTaskContext = { id, type, images: [] };
-            const today = getTodayString();
-            const list = type === 'longterm' ? taskData.longterm : (taskData.daily[today] || []);
+            const activeDate = viewingDate || getTodayString();
+            const list = type === 'longterm' ? taskData.longterm : (taskData.daily[activeDate] || []);
             const task = list.find(t => t.id === id);
             if (!task) return;
 
@@ -3481,8 +3520,8 @@
             const saveBtn = document.getElementById('save-log-btn');
             const originalText = saveBtn.textContent;
 
-            const today = getTodayString();
-            const list = currentTaskContext.type === 'longterm' ? taskData.longterm : (taskData.daily[today] || []);
+            const activeDate = viewingDate || getTodayString();
+            const list = currentTaskContext.type === 'longterm' ? taskData.longterm : (taskData.daily[activeDate] || []);
             const task = list.find(t => t.id === currentTaskContext.id);
 
             if (task) {
@@ -3522,8 +3561,8 @@
         window.openTaskEditModal = (id, type) => {
             setModalState(true, 'task-edit-modal');
             currentTaskContext = { id, type };
-            const today = getTodayString();
-            const list = type === 'longterm' ? taskData.longterm : (taskData.daily[today] || []);
+            const activeDate = viewingDate || getTodayString();
+            const list = type === 'longterm' ? taskData.longterm : (taskData.daily[activeDate] || []);
             const task = list.find(t => t.id === id);
             if (!task) return;
 
@@ -3547,8 +3586,8 @@
             const name = document.getElementById('edit-task-name').value.trim();
             if (!name) return;
 
-            const today = getTodayString();
-            const list = currentTaskContext.type === 'longterm' ? taskData.longterm : (taskData.daily[today] || []);
+            const activeDate = viewingDate || getTodayString();
+            const list = currentTaskContext.type === 'longterm' ? taskData.longterm : (taskData.daily[activeDate] || []);
             const task = list.find(t => t.id === currentTaskContext.id);
 
             if (task) {
@@ -3575,7 +3614,8 @@
                 </button>
             </div>
 
-            <div id="logs-timeline-container" class="flex-1 overflow-y-auto pr-2 mb-4" style="overscroll-behavior: contain;">
+            <div id="logs-timeline-container" class="flex-1 overflow-y-auto pr-2 mb-4"
+                style="overscroll-behavior: contain;">
                 <div id="logs-timeline" class="space-y-6 relative ml-4 border-l-2 border-gray-100 pl-6 pb-4 pt-2">
                     <!-- 时间轴将由 JS 动态生成 -->
                 </div>
@@ -3707,7 +3747,8 @@
                     <i class="fa fa-times text-text/40"></i>
                 </button>
             </div>
-            <div class="flex-1 overflow-y-auto p-6 space-y-6" id="log-history-container" style="overscroll-behavior: contain;">
+            <div class="flex-1 overflow-y-auto p-6 space-y-6" id="log-history-container"
+                style="overscroll-behavior: contain;">
                 <!-- 日志历史 -->
             </div>
             <div class="p-6 border-t border-secondary/30 space-y-4">
