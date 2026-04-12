@@ -219,26 +219,38 @@ app.post('/api/user/upload', async (c) => {
   const region = 'us-east-1' // standard for many S3 clones
   const service = 's3'
   
-  const fileName = `${username}/${Date.now()}-${file.name}`
+  // 规范化文件名：替换空格和特殊字符
+  const safeFileName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9.\-_]/g, '');
+  const fileName = `${username}/${Date.now()}-${safeFileName}`
   const fileBuffer = await file.arrayBuffer()
   const amzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '')
   const dateStamp = amzDate.slice(0, 8)
   
-  const canonicalUri = `/${bucket}/${fileName}`
-  const canonicalQuerystring = ''
-  const canonicalHeaders = `host:${endpoint}\nx-amz-content-sha256:UNSIGNED-PAYLOAD\nx-amz-date:${amzDate}\n`
+  // 1. Calculate payload hash
+  const payloadHash = await _sha256(new Uint8Array(fileBuffer))
+  
+  // 2. Canonical URI (bucket + file path)
+  // S3 path-style: /bucket/key
+  const canonicalUri = `/${bucket}/${fileName.split('/').map(encodeURIComponent).join('/')}`
+  
+  // 3. Canonical Headers (Must be alphabetically sorted!)
+  // host < x-amz-content-sha256 < x-amz-date
+  const canonicalHeaders = `host:${endpoint}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`
   const signedHeaders = 'host;x-amz-content-sha256;x-amz-date'
-  const payloadHash = 'UNSIGNED-PAYLOAD'
+  
+  const canonicalQuerystring = ''
+  // CanonicalRequest: Method + URI + Query + Headers + SignedHeaders + Hash
   const canonicalRequest = `PUT\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`
   
   const algorithm = 'AWS4-HMAC-SHA256'
   const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`
-  const stringToSign = `${algorithm}\n${amzDate}\n${credentialScope}\n${hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest)))}`
+  const hashedCanonicalRequest = await _sha256(new TextEncoder().encode(canonicalRequest))
+  const stringToSign = `${algorithm}\n${amzDate}\n${credentialScope}\n${hashedCanonicalRequest}`
   
   const signingKey = await getSignatureKey(secretKey, dateStamp, region, service)
   const signature = hex(await hmac(signingKey, stringToSign))
   const authorizationHeader = `${algorithm} Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`
-
+  
   const url = `https://${endpoint}${canonicalUri}`
   const response = await fetch(url, {
     method: 'PUT',

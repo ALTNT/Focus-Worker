@@ -1350,28 +1350,90 @@
             initAdvancedListeners();
         });
 
+        // 附件类型图标辅助函数
+        function getFileIcon(type, name) {
+            if (type.startsWith('image/')) return 'fa-file-image-o';
+            if (type.includes('pdf')) return 'fa-file-pdf-o text-red-500';
+            if (type.includes('word') || name.endsWith('.doc') || name.endsWith('.docx')) return 'fa-file-word-o text-blue-500';
+            if (type.includes('excel') || type.includes('sheet') || name.endsWith('.xls') || name.endsWith('.xlsx')) return 'fa-file-excel-o text-green-500';
+            if (type.includes('presentation') || name.endsWith('.ppt') || name.endsWith('.pptx')) return 'fa-file-powerpoint-o text-orange-500';
+            if (type.includes('zip') || type.includes('rar') || type.includes('archive') || name.endsWith('.7z')) return 'fa-file-archive-o text-purple-500';
+            if (type.includes('text') || name.endsWith('.txt')) return 'fa-file-text-o text-gray-400';
+            return 'fa-file-o text-gray-400';
+        }
+
+        // 统一附件渲染函数 (处理旧字符串和新对象)
+        function renderAttachmentHTML(item, options = {}) {
+            const isLegacy = typeof item === 'string';
+            const url = isLegacy ? item : item.url;
+            const name = isLegacy ? '图片附件' : item.name;
+            const type = isLegacy ? 'image/jpeg' : (item.type || '');
+            const isImage = type.startsWith('image/');
+            const sizeClass = options.size || 'h-24';
+
+            if (isImage) {
+                return `<img src="${url}" title="${escapeHTML(name)}" class="${sizeClass} rounded-xl border border-secondary/30 object-cover cursor-zoom-in hover:brightness-95 transition-all" onclick="window.open('${url}')">`;
+            }
+
+            const iconClass = getFileIcon(type, name);
+            const clickableClass = (options.previewOnly) ? '' : 'cursor-pointer hover:bg-white transition-colors';
+            return `
+                <div onclick="${options.previewOnly ? '' : `window.open('${url}')`}" 
+                    class="flex items-center gap-3 p-3 bg-white/50 border border-secondary/30 rounded-xl ${clickableClass} min-w-[160px] max-w-[240px] group shadow-sm"
+                    title="${escapeHTML(name)}">
+                    <div class="w-10 h-10 flex items-center justify-center bg-white rounded-lg border border-secondary/20 shrink-0">
+                        <i class="fa ${iconClass} text-lg"></i>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="text-[11px] font-bold text-text/80 truncate">${escapeHTML(name)}</div>
+                        <div class="text-[9px] text-text/40 mt-0.5 uppercase">${isLegacy ? 'IMAGE' : (type.split('/')[1] || name.split('.').pop() || 'FILE')}</div>
+                    </div>
+                    ${!options.previewOnly ? `<div class="text-text/30 group-hover:text-primary transition-colors"><i class="fa fa-download text-xs"></i></div>` : ''}
+                </div>
+            `;
+        }
+
         function initAdvancedListeners() {
-            // 追踪每个按钮正在进行的上传数量
             const uploadCounters = new Map();
 
-            // 通用图片处理核心函数
-            window.coreHandleImageUpload = async ({ file, previewContainerId, saveBtnId, context }) => {
+            window.coreHandleFileUpload = async ({ file, previewContainerId, saveBtnId, context }) => {
                 const previewContainer = document.getElementById(previewContainerId);
                 const saveBtn = document.getElementById(saveBtnId);
                 if (!previewContainer || !saveBtn) return;
 
-                // 初始化或增加该按钮的上传计数
+                // 30MB 限制
+                const MAX_SIZE = 30 * 1024 * 1024;
+                if (file.size > MAX_SIZE) {
+                    alert('文件太大啦！限制在 30MB 以内哦');
+                    return;
+                }
+
+                // 禁止可执行文件
+                const blockedExts = ['.exe', '.sh', '.bat', '.cmd', '.msi', '.com'];
+                const isBlocked = blockedExts.some(ext => file.name.toLowerCase().endsWith(ext));
+                if (isBlocked) {
+                    alert('出于安全考虑，暂时不支持上传可执行文件哦');
+                    return;
+                }
+
                 const count = (uploadCounters.get(saveBtnId) || 0) + 1;
                 uploadCounters.set(saveBtnId, count);
 
                 const id = Date.now() + Math.random();
                 const previewItem = document.createElement('div');
-                previewItem.className = 'relative w-12 h-12 rounded-lg bg-secondary/20 flex items-center justify-center overflow-hidden border border-secondary/30';
+                const isImage = file.type.startsWith('image/');
+                
+                // 根据类型设置预览项样式
+                if (isImage) {
+                    previewItem.className = 'relative w-12 h-12 rounded-lg bg-secondary/20 flex items-center justify-center overflow-hidden border border-secondary/30 group';
+                } else {
+                    previewItem.className = 'relative flex items-center gap-2 p-2 px-3 bg-secondary/10 border border-secondary/20 rounded-lg group max-w-[140px]';
+                }
+                
                 previewItem.id = `preview-${id}`;
-                previewItem.innerHTML = `<i class="fa fa-spinner fa-spin text-primary"></i>`;
+                previewItem.innerHTML = `<i class="fa fa-spinner fa-spin text-primary"></i> <span class="text-[9px] text-text/40 truncate">${file.name}</span>`;
                 previewContainer.appendChild(previewItem);
 
-                // 备份原始文字（仅在第一个上传开始时备份）
                 if (count === 1) {
                     saveBtn.dataset.originalText = saveBtn.textContent;
                 }
@@ -1391,19 +1453,38 @@
                     const data = await res.json();
 
                     if (data.success) {
-                        context.images.push(data.url);
-                        previewItem.innerHTML = `
-                            <img src="${data.url}" class="w-full h-full object-cover cursor-pointer" onclick="window.open('${data.url}')">
-                            <button class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" 
-                                onclick="event.stopPropagation(); window.removeLogImage('${previewContainerId}', '${data.url}', '${previewItem.id}', ${saveBtnId === 'save-log-btn' ? 'true' : 'false'})">
-                                <i class="fa fa-times text-[8px]"></i>
-                            </button>
-                        `;
-                        previewItem.classList.add('group');
-                        previewItem.title = '点击查看原图';
+                        const attachment = { 
+                            url: data.url, 
+                            name: file.name, 
+                            type: file.type, 
+                            size: file.size,
+                            uploadedAt: Date.now()
+                        };
+                        context.images.push(attachment);
+                        
+                        if (isImage) {
+                            previewItem.innerHTML = `
+                                <img src="${data.url}" class="w-full h-full object-cover cursor-pointer" onclick="window.open('${data.url}')">
+                                <button class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" 
+                                    onclick="event.stopPropagation(); window.removeLogImage('${previewContainerId}', '${data.url}', '${previewItem.id}', ${saveBtnId === 'save-log-btn' ? 'true' : 'false'})">
+                                    <i class="fa fa-times text-[8px]"></i>
+                                </button>
+                            `;
+                        } else {
+                            const iconClass = getFileIcon(file.type, file.name);
+                            previewItem.innerHTML = `
+                                <i class="fa ${iconClass} text-xs shrink-0"></i>
+                                <span class="text-[9px] font-bold text-text/70 truncate" title="${file.name}">${file.name}</span>
+                                <button class="ml-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" 
+                                    onclick="event.stopPropagation(); window.removeLogImage('${previewContainerId}', '${data.url}', '${previewItem.id}', ${saveBtnId === 'save-log-btn' ? 'true' : 'false'})">
+                                    <i class="fa fa-times text-[8px]"></i>
+                                </button>
+                            `;
+                        }
+                        previewItem.title = file.name;
                     } else {
                         previewItem.classList.add('bg-red-50');
-                        previewItem.innerHTML = `<i class="fa fa-exclamation-triangle text-red-400"></i>`;
+                        previewItem.innerHTML = `<i class="fa fa-exclamation-triangle text-red-400"></i> <span class="text-[8px] text-red-400">失败</span>`;
                         alert('上传失败: ' + (data.error || '未知错误'));
                     }
                 } catch (err) {
@@ -1423,14 +1504,13 @@
                 }
             };
 
-            // 手动删除预览图
             window.removeLogImage = (containerId, url, itemId, isTask) => {
                 const item = document.getElementById(itemId);
                 if (item) item.remove();
                 if (isTask) {
-                    currentTaskContext.images = currentTaskContext.images.filter(i => i !== url);
+                    currentTaskContext.images = currentTaskContext.images.filter(i => (typeof i === 'string' ? i : i.url) !== url);
                 } else {
-                    currentLogImages = currentLogImages.filter(i => i !== url);
+                    currentLogImages = currentLogImages.filter(i => (typeof i === 'string' ? i : i.url) !== url);
                 }
             };
 
@@ -1452,7 +1532,7 @@
                 for (const item of items) {
                     if (item.type.indexOf('image') !== -1) {
                         const file = item.getAsFile();
-                        if (file) window.coreHandleImageUpload({ file, previewContainerId: config.previewId, saveBtnId: config.btnId, context: config.context });
+                        if (file) window.coreHandleFileUpload({ file, previewContainerId: config.previewId, saveBtnId: config.btnId, context: config.context });
                     }
                 }
             });
@@ -1461,7 +1541,7 @@
             document.getElementById('log-image-input')?.addEventListener('change', async (e) => {
                 const files = Array.from(e.target.files);
                 for (const file of files) {
-                    window.coreHandleImageUpload({ 
+                    window.coreHandleFileUpload({ 
                         file, 
                         previewContainerId: 'log-image-previews', 
                         saveBtnId: 'save-log-btn', 
@@ -2004,11 +2084,9 @@
                     hour: '2-digit', minute: '2-digit'
                 });
 
-                const imageGallery = log.images && log.images.length ? `
+                const attachmentsHTML = log.images && log.images.length ? `
                     <div class="flex flex-wrap gap-2 mt-3">
-                        ${log.images.map(img => `
-                            <img src="${img}" class="h-24 rounded-xl border border-secondary/30 object-cover cursor-zoom-in" onclick="window.open('${img}')">
-                        `).join('')}
+                        ${log.images.map(item => renderAttachmentHTML(item, { size: 'h-24' })).join('')}
                     </div>
                 ` : '';
 
@@ -2025,7 +2103,7 @@
                         </div>
                         <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed">
                             ${escapeHTML(log.content).replace(/\n/g, '<br>')}
-                            ${imageGallery}
+                            ${attachmentsHTML}
                         </div>
                     </div>`;
                 } else {
@@ -2055,7 +2133,7 @@
                                 </div>
                                 <div class="text-xs text-gray-800 bg-green-50/50 p-2 rounded-lg border border-green-50 text-right">${log.myResponse ? escapeHTML(log.myResponse).replace(/\n/g, '<br>') : '尚未记录回复'}</div>
                             </div>
-                            ${imageGallery}
+                            ${attachmentsHTML}
                         </div>
                     </div>`;
                 }
@@ -2072,17 +2150,37 @@
             currentLogImages = log.images ? [...log.images] : [];
             const previewContainer = document.getElementById('logs-image-previews');
             if (previewContainer) {
-                previewContainer.innerHTML = currentLogImages.map((url, idx) => {
-                    const id = `edit-log-img-${idx}`;
-                    return `
-                        <div id="${id}" class="relative w-12 h-12 rounded-lg bg-secondary/20 overflow-hidden border border-secondary/30 group">
-                            <img src="${url}" class="w-full h-full object-cover cursor-pointer" onclick="window.open('${url}')">
-                            <button class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" 
-                                onclick="event.stopPropagation(); window.removeLogImage('logs-image-previews', '${url}', '${id}', false)">
-                                <i class="fa fa-times text-[8px]"></i>
-                            </button>
-                        </div>
-                    `;
+                previewContainer.innerHTML = currentLogImages.map((item, idx) => {
+                    const isLegacy = typeof item === 'string';
+                    const url = isLegacy ? item : item.url;
+                    const name = isLegacy ? '图片附件' : item.name;
+                    const type = isLegacy ? 'image/jpeg' : (item.type || '');
+                    const isImage = type.startsWith('image/');
+                    const id = `edit-log-att-${idx}`;
+
+                    if (isImage) {
+                        return `
+                            <div id="${id}" class="relative w-12 h-12 rounded-lg bg-secondary/20 overflow-hidden border border-secondary/30 group">
+                                <img src="${url}" class="w-full h-full object-cover cursor-pointer" onclick="window.open('${url}')">
+                                <button class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" 
+                                    onclick="event.stopPropagation(); window.removeLogImage('logs-image-previews', '${url}', '${id}', false)">
+                                    <i class="fa fa-times text-[8px]"></i>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        const iconClass = getFileIcon(type, name);
+                        return `
+                            <div id="${id}" class="relative flex items-center gap-2 p-2 px-3 bg-secondary/10 border border-secondary/20 rounded-lg group max-w-[140px]">
+                                <i class="fa ${iconClass} text-xs shrink-0"></i>
+                                <span class="text-[9px] font-bold text-text/70 truncate" title="${name}">${name}</span>
+                                <button class="ml-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" 
+                                    onclick="event.stopPropagation(); window.removeLogImage('logs-image-previews', '${url}', '${id}', false)">
+                                    <i class="fa fa-times text-[8px]"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
                 }).join('');
             }
 
@@ -2181,7 +2279,7 @@
             document.getElementById('logs-image-input')?.addEventListener('change', async (e) => {
                 const files = Array.from(e.target.files);
                 for (const file of files) {
-                    window.coreHandleImageUpload({ 
+                    window.coreHandleFileUpload({ 
                         file, 
                         previewContainerId: 'logs-image-previews', 
                         saveBtnId: 'add-log-entry-btn', 
@@ -3609,9 +3707,7 @@
                     <div class="text-sm text-text/80 leading-relaxed whitespace-pre-wrap">${escapeHTML(log.text)}</div>
                     ${log.images && log.images.length ? `
                         <div class="flex flex-wrap gap-2 mt-3">
-                            ${log.images.map(img => `
-                                <img src="${img}" class="h-32 rounded-xl border border-secondary/30 object-cover cursor-zoom-in" onclick="window.open('${img}')">
-                            `).join('')}
+                            ${log.images.map(item => renderAttachmentHTML(item, { size: 'h-32' })).join('')}
                         </div>
                     ` : ''}
                 </div>
@@ -3760,9 +3856,10 @@
                     <div class="flex items-center gap-2">
                         <button onclick="document.getElementById('logs-image-input').click()" 
                             class="flex items-center gap-1.5 text-text/50 hover:text-primary transition-colors text-xs font-bold bg-white px-3 py-1.5 rounded-lg border border-secondary/50 shadow-sm">
-                            <i class="fa fa-camera"></i> 添加图片
+                            <i class="fa fa-paperclip"></i> 添加附件
                         </button>
-                        <input type="file" id="logs-image-input" class="hidden" accept="image/*" multiple>
+                        <input type="file" id="logs-image-input" class="hidden" 
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.tar,image/*" multiple>
                     </div>
                     <div class="flex gap-3">
                         <button id="cancel-log-edit-btn"
@@ -3878,9 +3975,10 @@
                     <div class="flex items-center gap-3 mt-3">
                         <button onclick="document.getElementById('log-image-input').click()"
                             class="flex items-center gap-2 px-4 py-2 bg-secondary/30 hover:bg-secondary/50 rounded-xl text-xs font-bold text-text/60 transition-colors">
-                            <i class="fa fa-image"></i> 添加截图/图片
+                            <i class="fa fa-paperclip"></i> 添加附件 (支持PDF/文档等)
                         </button>
-                        <input type="file" id="log-image-input" class="hidden" accept="image/*" multiple>
+                        <input type="file" id="log-image-input" class="hidden" 
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.tar,image/*" multiple>
                         <div id="log-image-previews" class="flex gap-2 text-xs text-text/40 overflow-x-auto"></div>
                     </div>
                 </div>
