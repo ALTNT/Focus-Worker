@@ -1351,28 +1351,18 @@
         });
 
         function initAdvancedListeners() {
-            // 全局粘贴监听器 (截图直传)
-            document.addEventListener('paste', async (e) => {
-                const logModal = document.getElementById('task-log-modal');
-                if (!logModal || logModal.classList.contains('hidden')) return;
+            // 追踪每个按钮正在进行的上传数量
+            const uploadCounters = new Map();
 
-                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-                for (const item of items) {
-                    if (item.type.indexOf('image') !== -1) {
-                        const file = item.getAsFile();
-                        if (file) {
-                            // 模拟文件选择事件，调用现有的上传逻辑
-                            handleImageUpload(file);
-                        }
-                    }
-                }
-            });
-
-            async function handleImageUpload(file) {
-                const previewContainer = document.getElementById('log-image-previews');
-                const saveBtn = document.getElementById('save-log-btn');
-
+            // 通用图片处理核心函数
+            window.coreHandleImageUpload = async ({ file, previewContainerId, saveBtnId, context }) => {
+                const previewContainer = document.getElementById(previewContainerId);
+                const saveBtn = document.getElementById(saveBtnId);
                 if (!previewContainer || !saveBtn) return;
+
+                // 初始化或增加该按钮的上传计数
+                const count = (uploadCounters.get(saveBtnId) || 0) + 1;
+                uploadCounters.set(saveBtnId, count);
 
                 const id = Date.now() + Math.random();
                 const previewItem = document.createElement('div');
@@ -1381,9 +1371,14 @@
                 previewItem.innerHTML = `<i class="fa fa-spinner fa-spin text-primary"></i>`;
                 previewContainer.appendChild(previewItem);
 
+                // 备份原始文字（仅在第一个上传开始时备份）
+                if (count === 1) {
+                    saveBtn.dataset.originalText = saveBtn.textContent;
+                }
+                
                 try {
                     saveBtn.disabled = true;
-                    saveBtn.textContent = '图片上传中...';
+                    saveBtn.textContent = `上传中(${uploadCounters.get(saveBtnId)})...`;
 
                     const formData = new FormData();
                     formData.append('file', file);
@@ -1396,8 +1391,16 @@
                     const data = await res.json();
 
                     if (data.success) {
-                        currentTaskContext.images.push(data.url);
-                        previewItem.innerHTML = `<img src="${data.url}" class="w-full h-full object-cover">`;
+                        context.images.push(data.url);
+                        previewItem.innerHTML = `
+                            <img src="${data.url}" class="w-full h-full object-cover cursor-pointer" onclick="window.open('${data.url}')">
+                            <button class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" 
+                                onclick="event.stopPropagation(); window.removeLogImage('${previewContainerId}', '${data.url}', '${previewItem.id}', ${saveBtnId === 'save-log-btn' ? 'true' : 'false'})">
+                                <i class="fa fa-times text-[8px]"></i>
+                            </button>
+                        `;
+                        previewItem.classList.add('group');
+                        previewItem.title = '点击查看原图';
                     } else {
                         previewItem.classList.add('bg-red-50');
                         previewItem.innerHTML = `<i class="fa fa-exclamation-triangle text-red-400"></i>`;
@@ -1407,16 +1410,63 @@
                     console.error('Upload Error:', err);
                     alert('网络上传失败，请检查连接');
                 } finally {
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = '发布日志';
+                    const newCount = uploadCounters.get(saveBtnId) - 1;
+                    uploadCounters.set(saveBtnId, newCount);
+                    
+                    if (newCount <= 0) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = saveBtn.dataset.originalText || (saveBtnId === 'save-log-btn' ? '发布日志' : '发布记录');
+                        uploadCounters.delete(saveBtnId);
+                    } else {
+                        saveBtn.textContent = `上传中(${newCount})...`;
+                    }
                 }
-            }
+            };
+
+            // 手动删除预览图
+            window.removeLogImage = (containerId, url, itemId, isTask) => {
+                const item = document.getElementById(itemId);
+                if (item) item.remove();
+                if (isTask) {
+                    currentTaskContext.images = currentTaskContext.images.filter(i => i !== url);
+                } else {
+                    currentLogImages = currentLogImages.filter(i => i !== url);
+                }
+            };
+
+            // 全局粘贴监听器 (截图直传)
+            document.addEventListener('paste', async (e) => {
+                const taskModal = document.getElementById('task-log-modal');
+                const logsModal = document.getElementById('logs-modal');
+                
+                let config = null;
+                if (taskModal && !taskModal.classList.contains('hidden')) {
+                    config = { context: currentTaskContext, previewId: 'log-image-previews', btnId: 'save-log-btn' };
+                } else if (logsModal && !logsModal.classList.contains('hidden')) {
+                    config = { context: { images: currentLogImages }, previewId: 'logs-image-previews', btnId: 'add-log-entry-btn' };
+                }
+
+                if (!config) return;
+
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                for (const item of items) {
+                    if (item.type.indexOf('image') !== -1) {
+                        const file = item.getAsFile();
+                        if (file) window.coreHandleImageUpload({ file, previewContainerId: config.previewId, saveBtnId: config.btnId, context: config.context });
+                    }
+                }
+            });
 
             // 处理任务日志图片上传 (原有的点击选择逻辑)
             document.getElementById('log-image-input')?.addEventListener('change', async (e) => {
                 const files = Array.from(e.target.files);
                 for (const file of files) {
-                    handleImageUpload(file);
+                    window.coreHandleImageUpload({ 
+                        file, 
+                        previewContainerId: 'log-image-previews', 
+                        saveBtnId: 'save-log-btn', 
+                        context: currentTaskContext 
+                    });
                 }
             });
         }
@@ -1888,19 +1938,25 @@
         let currentLogType = null; // 'paper' or 'submission'
         let currentLogId = null;
         let editingLogDate = null; // 用于存储正在编辑的日志时间戳
+        let currentLogImages = []; // 用于论文/投稿日志的临时图片存储
 
         window.openLogsModal = function (type, id) {
             setModalState(true, 'logs-modal');
             currentLogType = type;
             currentLogId = id;
+            currentLogImages = [];
             const modal = document.getElementById('logs-modal');
             const paperInputs = document.getElementById('paper-log-inputs');
             const subInputs = document.getElementById('sub-log-inputs');
             const title = document.getElementById('logs-modal-title');
             const inputTitle = document.getElementById('logs-input-title');
+            
+            // 清理预览区
+            const previewContainer = document.getElementById('logs-image-previews');
+            if (previewContainer) previewContainer.innerHTML = '';
 
             modal.classList.remove('hidden');
-            cancelEdit(); // 每次打开弹窗先重置编辑状态
+            cancelEdit(); 
             if (type === 'paper') {
                 const paper = papersData.find(p => p.id === id);
                 title.textContent = `研究心得/日志: ${paper.title}`;
@@ -1920,6 +1976,7 @@
         window.closeLogsModal = function () {
             setModalState(false);
             document.getElementById('logs-modal').classList.add('hidden');
+            currentLogImages = [];
         }
 
         window.renderTimeline = function () {
@@ -1947,6 +2004,14 @@
                     hour: '2-digit', minute: '2-digit'
                 });
 
+                const imageGallery = log.images && log.images.length ? `
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        ${log.images.map(img => `
+                            <img src="${img}" class="h-24 rounded-xl border border-secondary/30 object-cover cursor-zoom-in" onclick="window.open('${img}')">
+                        `).join('')}
+                    </div>
+                ` : '';
+
                 if (currentLogType === 'paper') {
                     return `
                     <div class="relative last:mb-0 group">
@@ -1958,7 +2023,10 @@
                                 <button onclick="deleteLogEntry('${log.date}')" class="text-red-400 hover:text-red-600 p-1" title="删除"><i class="fa fa-trash-o"></i></button>
                             </div>
                         </div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed">${escapeHTML(log.content).replace(/\n/g, '<br>')}</div>
+                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed">
+                            ${escapeHTML(log.content).replace(/\n/g, '<br>')}
+                            ${imageGallery}
+                        </div>
                     </div>`;
                 } else {
                     return `
@@ -1987,6 +2055,7 @@
                                 </div>
                                 <div class="text-xs text-gray-800 bg-green-50/50 p-2 rounded-lg border border-green-50 text-right">${log.myResponse ? escapeHTML(log.myResponse).replace(/\n/g, '<br>') : '尚未记录回复'}</div>
                             </div>
+                            ${imageGallery}
                         </div>
                     </div>`;
                 }
@@ -2000,6 +2069,23 @@
             const parent = containerData.find(x => x.id === currentLogId);
             const log = parent.logs.find(l => l.date === date);
 
+            currentLogImages = log.images ? [...log.images] : [];
+            const previewContainer = document.getElementById('logs-image-previews');
+            if (previewContainer) {
+                previewContainer.innerHTML = currentLogImages.map((url, idx) => {
+                    const id = `edit-log-img-${idx}`;
+                    return `
+                        <div id="${id}" class="relative w-12 h-12 rounded-lg bg-secondary/20 overflow-hidden border border-secondary/30 group">
+                            <img src="${url}" class="w-full h-full object-cover cursor-pointer" onclick="window.open('${url}')">
+                            <button class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" 
+                                onclick="event.stopPropagation(); window.removeLogImage('logs-image-previews', '${url}', '${id}', false)">
+                                <i class="fa fa-times text-[8px]"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
             if (currentLogType === 'paper') {
                 document.getElementById('log-content-paper').value = log.content;
             } else {
@@ -2009,15 +2095,17 @@
 
             document.getElementById('add-log-entry-btn').textContent = '保存修改';
             document.getElementById('cancel-log-edit-btn').classList.remove('hidden');
-            // 滚动到输入区域
             document.getElementById('logs-timeline-container').nextElementSibling.scrollIntoView({ behavior: 'smooth' });
         }
 
         window.cancelEdit = function () {
             editingLogDate = null;
+            currentLogImages = [];
             document.getElementById('log-content-paper').value = '';
             document.getElementById('log-reviewer-comments').value = '';
             document.getElementById('log-my-response').value = '';
+            const previewContainer = document.getElementById('logs-image-previews');
+            if (previewContainer) previewContainer.innerHTML = '';
             document.getElementById('add-log-entry-btn').textContent = '发布记录';
             document.getElementById('cancel-log-edit-btn').classList.add('hidden');
         }
@@ -2041,24 +2129,28 @@
             cancelBtn.addEventListener('click', cancelEdit);
 
             btn.addEventListener('click', () => {
+                const images = [...currentLogImages];
                 if (currentLogType === 'paper') {
                     const content = document.getElementById('log-content-paper').value.trim();
-                    if (!content) { alert('请输入心得内容'); return; }
+                    if (!content && images.length === 0) { alert('请输入心得内容或添加图片'); return; }
                     const paper = papersData.find(p => p.id === currentLogId);
                     if (!paper.logs) paper.logs = [];
 
                     if (editingLogDate) {
                         const idx = paper.logs.findIndex(l => l.date === editingLogDate);
-                        if (idx !== -1) paper.logs[idx].content = content;
+                        if (idx !== -1) {
+                            paper.logs[idx].content = content;
+                            paper.logs[idx].images = images;
+                        }
                     } else {
-                        paper.logs.push({ date: new Date().toISOString(), content });
+                        paper.logs.push({ date: new Date().toISOString(), content, images });
                     }
                     cancelEdit();
                     renderPapersTable();
                 } else {
                     const comments = document.getElementById('log-reviewer-comments').value.trim();
                     const response = document.getElementById('log-my-response').value.trim();
-                    if (!comments && !response) { alert('请至少填写审稿意见或回复内容'); return; }
+                    if (!comments && !response && images.length === 0) { alert('请填写审稿意见、回复或添加图片'); return; }
                     const sub = submissionsData.find(s => s.id === currentLogId);
                     if (!sub.logs) sub.logs = [];
 
@@ -2067,12 +2159,14 @@
                         if (idx !== -1) {
                             sub.logs[idx].reviewerComments = comments;
                             sub.logs[idx].myResponse = response;
+                            sub.logs[idx].images = images;
                         }
                     } else {
                         sub.logs.push({
                             date: new Date().toISOString(),
                             reviewerComments: comments,
                             myResponse: response,
+                            images: images,
                             status: sub.status
                         });
                     }
@@ -2081,6 +2175,19 @@
                 }
                 saveData();
                 renderTimeline();
+            });
+
+            // 初始化论文/投稿日志图片上传
+            document.getElementById('logs-image-input')?.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                for (const file of files) {
+                    window.coreHandleImageUpload({ 
+                        file, 
+                        previewContainerId: 'logs-image-previews', 
+                        saveBtnId: 'add-log-entry-btn', 
+                        context: { images: currentLogImages } 
+                    });
+                }
             });
         }
 
@@ -3646,11 +3753,23 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end mt-4 gap-3">
-                    <button id="cancel-log-edit-btn"
-                        class="hidden text-gray-500 hover:text-gray-700 font-medium text-sm px-4">取消编辑</button>
-                    <button id="add-log-entry-btn"
-                        class="bg-primary hover:bg-primary/90 text-white py-2 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all text-sm">发布记录</button>
+                <!-- 图片预览区 -->
+                <div id="logs-image-previews" class="flex flex-wrap gap-2 mb-3"></div>
+
+                <div class="flex justify-between mt-4 items-center">
+                    <div class="flex items-center gap-2">
+                        <button onclick="document.getElementById('logs-image-input').click()" 
+                            class="flex items-center gap-1.5 text-text/50 hover:text-primary transition-colors text-xs font-bold bg-white px-3 py-1.5 rounded-lg border border-secondary/50 shadow-sm">
+                            <i class="fa fa-camera"></i> 添加图片
+                        </button>
+                        <input type="file" id="logs-image-input" class="hidden" accept="image/*" multiple>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="cancel-log-edit-btn"
+                            class="hidden text-gray-500 hover:text-gray-700 font-medium text-sm px-4">取消编辑</button>
+                        <button id="add-log-entry-btn"
+                            class="bg-primary hover:bg-primary/90 text-white py-2 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all text-sm">发布记录</button>
+                    </div>
                 </div>
             </div>
         </div>
