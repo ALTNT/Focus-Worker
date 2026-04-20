@@ -218,15 +218,27 @@ Script.complete();
 API_TOKEN="这里填你的小组件密钥"
 BASE_URL="https://track.alyy.de"
 
+# 本地缓存路径 (用于网络故障时回滚)
+CACHE_FILE="/tmp/focus_tracker_cache_${API_TOKEN: -8}.json"
+
 # 获取数据 (添加 5 秒超时保护)
 DATA=$(curl -s --connect-timeout 5 -H "Authorization: Bearer $API_TOKEN" "$BASE_URL/api/data/checkin")
 EXIT_CODE=$?
 TODAY=$(date +%F)
+IS_OFFLINE=0
 
-# 1. 检查网络连通性
+# 1. 网络故障处理：尝试读取本地缓存
 if [ $EXIT_CODE -ne 0 ] || [ -z "$DATA" ]; then
-    echo "⚠️ 网络错误 | color=red"
-    exit 0
+    if [ -f "$CACHE_FILE" ]; then
+        DATA=$(cat "$CACHE_FILE")
+        IS_OFFLINE=1
+    else
+        echo "⚠️ 网络错误 | color=red"
+        exit 0
+    fi
+else
+    # 网络正常：更新本地缓存
+    echo "$DATA" > "$CACHE_FILE"
 fi
 
 # 解析 JSON 原生数据 (使用 Mac 自带的 Python 避免安装 jq)
@@ -258,23 +270,28 @@ format_time() {
     printf "%dh %dm %ds" $h $m $s
 }
 
+STATUS_SUFFIX=""
+if [ $IS_OFFLINE -eq 1 ]; then
+    STATUS_SUFFIX=" (离线)"
+fi
+
 if [ "$RUNNING_SINCE" != "null" ]; then
     # 正在运行：动态累加 (兼容 Mac BSD date)
     NOW=$(date +%s)
     RUNNING_SINCE_SEC=$((RUNNING_SINCE / 1000))
     ELAPSED=$((NOW - RUNNING_SINCE_SEC))
     
-    # 3. 安全检查：防止计算溢出
+    # 3. 安全检查
     if [ $ELAPSED -lt 0 ] || [ $ELAPSED -gt 86400 ]; then
         echo "⏳ 正在校准... | color=#9ca3af"
         exit 0
     fi
 
     TOTAL=$((DURATION + ELAPSED))
-    echo "🔥 专注中: $(format_time $TOTAL) | color=#8EAA90"
+    echo "🔥 专注中: $(format_time $TOTAL)${STATUS_SUFFIX} | color=#8EAA90"
 else
     # 已暂停
-    echo "☕ 休息中: $(format_time $DURATION) | color=#9ca3af"
+    echo "☕ 休息中: $(format_time $DURATION)${STATUS_SUFFIX} | color=#9ca3af"
 fi
 
 echo "---"
