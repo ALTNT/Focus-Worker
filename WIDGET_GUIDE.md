@@ -221,9 +221,15 @@ BASE_URL="https://track.alyy.de"
 DATA=$(curl -s -H "Authorization: Bearer $API_TOKEN" "$BASE_URL/api/data/checkin")
 TODAY=$(date +%F)
 
-# 解析 JSON 原生数据
-DURATION=$(echo $DATA | jq -r ".\"$TODAY\".duration // 0")
-RUNNING_SINCE=$(echo $DATA | jq -r ".\"$TODAY\".timerRunningSince // \"null\"")
+# 解析 JSON 原生数据 (使用 Mac 自带的 Python 避免安装 jq)
+parse_json() {
+    python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('$TODAY', {}).get('$1', 'null'))"
+}
+
+DURATION=$(echo $DATA | parse_json "duration")
+if [ "$DURATION" == "null" ]; then DURATION=0; fi
+
+RUNNING_SINCE=$(echo $DATA | parse_json "timerRunningSince")
 
 # 格式化时间函数
 format_time() {
@@ -234,10 +240,10 @@ format_time() {
 }
 
 if [ "$RUNNING_SINCE" != "null" ]; then
-    # 正在运行：动态累加
-    NOW=$(date +%s%3N)
-    DIFF_MS=$((NOW - RUNNING_SINCE))
-    ELAPSED=$((DIFF_MS / 1000))
+    # 正在运行：动态累加 (兼容 Mac BSD date)
+    NOW=$(date +%s)
+    RUNNING_SINCE_SEC=$((RUNNING_SINCE / 1000))
+    ELAPSED=$((NOW - RUNNING_SINCE_SEC))
     TOTAL=$((DURATION + ELAPSED))
     echo "▶️ $(format_time $TOTAL) | color=#8EAA90"
 else
