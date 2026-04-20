@@ -2663,6 +2663,7 @@
             }
 
             startBtn.addEventListener('click', () => {
+                lastLocalActionTime = Date.now(); // 开启15秒免死金牌冷却期
                 const nowTs = Date.now();
                 localStorage.setItem(getUserKey('last_date'), getTodayString());
                 localStorage.setItem(getUserKey('active_start'), nowTs.toString());
@@ -2677,6 +2678,7 @@
             });
 
             pauseBtn.addEventListener('click', () => {
+                lastLocalActionTime = Date.now(); // 开启15秒免死金牌冷却期
                 const now = Date.now();
                 if (timerStartTime) {
                     let sessionSeconds = Math.floor((now - timerStartTime) / 1000);
@@ -2704,6 +2706,7 @@
             // 监听文档可见性，实现刚用完快捷指令切回电脑时立马同步接管（双向侦测）
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
+                    if (Date.now() - lastLocalActionTime < 15000) return; // 冷却安检：如果你刚刚才在本地点了按钮，忽略这波神仙同步
                     const today = getTodayString();
                     apiCall('/data/checkin').then(res => {
                         if (res && res[today]) {
@@ -2754,6 +2757,7 @@
             // 初始化全局静默感应（对称接管生死状态）
             if (window.globalSyncInterval) clearInterval(window.globalSyncInterval);
             window.globalSyncInterval = setInterval(() => {
+                if (Date.now() - lastLocalActionTime < 15000) return; // 冷却安检：如果你刚刚才在本地点了按钮，15秒内全盘屏蔽 CDN 旧缓存骚扰
                 const today = getTodayString();
                 apiCall('/data/checkin').then(res => {
                     if (res && res[today]) {
