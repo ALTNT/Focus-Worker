@@ -1203,13 +1203,15 @@
 
         // API 辅助
         async function apiCall(path, method, body) {
-            const opts = { method: method || 'GET', headers: {} };
+            const opts = { method: method || 'GET', headers: {}, cache: 'no-store' };
             if (_authToken) opts.headers['Authorization'] = 'Bearer ' + _authToken;
             if (body !== undefined) {
                 opts.headers['Content-Type'] = 'application/json';
                 opts.body = JSON.stringify(body);
             }
-            const res = await fetch('/api' + path, opts);
+            // 强制加盖时间戳，阻止一切浏览器/CDN缓存导致的状态不同步
+            const url = '/api' + path + (opts.method === 'GET' ? `?t=${Date.now()}` : '');
+            const res = await fetch(url, opts);
             if (res.status === 401) { showLoginScreen(); return null; }
             return res.json();
         }
