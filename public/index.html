@@ -2584,9 +2584,26 @@
                         }
 
                         syncCounter++;
-                        
-                        // 3. 高频探活：每 10 秒钟查一下服务器，看看是不是别人在外头用快捷指令打卡停掉了
-                        if (syncCounter % 10 === 0) {
+                        // 3. 探活与备份逻辑解耦互斥
+                        if (syncCounter >= 180) {
+                            syncCounter = 0;
+                            // 每 3 分钟，全量保存前务必先进行一次安全安检，防止瞎覆盖
+                            apiCall('/data/checkin').then(res => {
+                                let safelyStopped = false;
+                                if (res && res[currentDay]) {
+                                    if (res[currentDay].timerRunningSince === null && isTimerRunning) {
+                                        console.log('Safe-Save check: Detected external shortcut stop.');
+                                        pauseBtn.click();
+                                        safelyStopped = true;
+                                    }
+                                }
+                                // 如果发现没被手机关停，才敢安心地把电脑的数据上传同步过去
+                                if (!safelyStopped) {
+                                    saveData();
+                                }
+                            });
+                        } else if (syncCounter % 10 === 0) {
+                            // 日常 10 秒高频探活
                             apiCall('/data/checkin').then(res => {
                                 if (res && res[currentDay]) {
                                     if (res[currentDay].timerRunningSince === null && isTimerRunning) {
@@ -2595,12 +2612,6 @@
                                     }
                                 }
                             });
-                        }
-
-                        // 4. 重度全量备份同步：每 3 分钟同步一次到服务器
-                        if (syncCounter >= 180) {
-                            syncCounter = 0;
-                            saveData(); // 静默同步
                         }
 
                         updateTimerUI(total);
