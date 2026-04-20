@@ -2727,9 +2727,16 @@
 
             resetBtn.addEventListener('click', () => {
                 if (confirm('确定要重置今日专注时长吗？此操作不可撤销。')) {
+                    lastLocalActionTime = Date.now(); // 防止重置后被远程探活意外恢复
                     accumulatedSeconds = 0;
                     localStorage.removeItem(getUserKey('active_start'));
                     localStorage.setItem(getUserKey('accumulated_base'), '0');
+
+                    const today = getTodayString();
+                    if (checkinData[today]) {
+                        checkinData[today].timerRunningSince = null;
+                        checkinData[today].duration = 0;
+                    }
 
                     refreshTimerState();
                     saveData();
