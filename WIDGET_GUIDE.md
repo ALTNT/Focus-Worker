@@ -143,9 +143,16 @@ const statusLabel = statusStack.addText(statusText);
 statusLabel.font = Font.mediumSystemFont(12);
 statusLabel.textColor = isRunning ? new Color("#d97706") : new Color("#9ca3af");
 
+// 💡 提升刷新频率：建议 iOS 系统在 2 分钟后再次刷新
+widget.refreshAfterDate = new Date(Date.now() + 1000 * 60 * 2);
+
 Script.setWidget(widget);
 Script.complete();
 ```
+
+> **💡 小贴士 (iOS 环境)：**
+> 1. **强制刷新**：如果觉得同步慢了，点击一下组件图标即可立刻触发一次数据最新拉取。
+> 2. **Mac 桌面使用**：若你的 Mac 系统版本在 Sonoma (14.0) 以上，直接在 Mac 桌面右键进入“编辑小组件”，搜索 Scriptable 即可将你在手机上配好的这个面板直接搬到电脑桌面上！
 
 ---
 
@@ -191,6 +198,58 @@ Script.complete();
    如果你精通快捷键，可以下载开源小软件 **AutoHotkey**。
    配置脚本把上面的 HTTP 请求绑定在诸如 `Ctrl + Alt + T` 这种全范围无冲突的快捷键上。
    这意味着，不管你此刻在电脑上看文献、看剧还是写代码，只要盲按这三个键，不用切换任何窗口，你就悄悄在后台完成了一次完美的打卡操作！
+
+---
+
+## 🔝 进阶玩法五：macOS 顶部菜单栏实时仪表盘 (SwiftBar)
+
+如果你追求极致，希望在 Mac 的顶部状态栏（时间旁边）永远有一个跳动的专注计时器，请使用这个方案！
+
+1. **安装工具**：通过 [官网](https://swiftbar.app/) 或 `brew install swiftbar` 安装免费开源工具 **SwiftBar**。
+2. **创建脚本**：在你的 Mac 上随意建立一个目录（例如：`~/FocusPlugins`），在里面新建一个文件名为 `focus.10s.sh`。
+   * *(文件名中的 `.10s` 代表这个状态栏每 10 秒钟会自动刷新一次时间，你可以改成 `.1m` 代表一分钟刷新一次)*
+3. **写入以下代码**（替换成你的服务器密钥）：
+
+```bash
+#!/bin/bash
+# <bitbar.title>Focus Tracker</bitbar.title>
+# <bitbar.author>PhD Project</bitbar.author>
+
+API_TOKEN="这里填你的小组件密钥"
+BASE_URL="https://track.alyy.de"
+
+DATA=$(curl -s -H "Authorization: Bearer $API_TOKEN" "$BASE_URL/api/data/checkin")
+TODAY=$(date +%F)
+
+# 解析 JSON 原生数据
+DURATION=$(echo $DATA | jq -r ".\"$TODAY\".duration // 0")
+RUNNING_SINCE=$(echo $DATA | jq -r ".\"$TODAY\".timerRunningSince // \"null\"")
+
+# 格式化时间函数
+format_time() {
+    ((h=$1/3600))
+    ((m=($1%3600)/60))
+    ((s=$1%60))
+    printf "%dh %dm %ds" $h $m $s
+}
+
+if [ "$RUNNING_SINCE" != "null" ]; then
+    # 正在运行：动态累加
+    NOW=$(date +%s%3N)
+    DIFF_MS=$((NOW - RUNNING_SINCE))
+    ELAPSED=$((DIFF_MS / 1000))
+    TOTAL=$((DURATION + ELAPSED))
+    echo "▶️ $(format_time $TOTAL) | color=#8EAA90"
+else
+    # 已暂停
+    echo "⏸️ $(format_time $DURATION) | color=#9ca3af"
+fi
+
+echo "---"
+echo "打开主页 | href=$BASE_URL"
+echo "刷新数据 | refresh=true"
+```
+4. **运行**：在 SwiftBar 中选取该文件夹，你的状态栏立马就会出现一个帅气的、会动的专注计时器了！
 
 ---
 ## 💡 常见同步说明
