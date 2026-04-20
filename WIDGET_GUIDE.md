@@ -206,8 +206,8 @@ Script.complete();
 如果你追求极致，希望在 Mac 的顶部状态栏（时间旁边）永远有一个跳动的专注计时器，请使用这个方案！
 
 1. **安装工具**：通过 [官网](https://swiftbar.app/) 或 `brew install swiftbar` 安装免费开源工具 **SwiftBar**。
-2. **创建脚本**：在你的 Mac 上随意建立一个目录（例如：`~/FocusPlugins`），在里面新建一个文件名为 `focus.1m.sh`。
-   * *(文件名中的 `.1m` 代表这个状态栏每 1 分钟会自动刷新一次时间，你可以改成 `.30s` 代表30秒刷新一次)*
+2. **创建脚本**：在你的 Mac 上随意建立一个目录（例如：`~/FocusPlugins`），在里面新建一个文件名为 `focus.2m.sh`。
+   * *(文件名中的 `.2m` 代表这个状态栏每 2 分钟会自动刷新一次时间，你可以改成 `.30s` 代表30秒刷新一次)*
 3. **写入以下代码**（替换成你的服务器密钥）：
 
 ```bash
@@ -218,18 +218,37 @@ Script.complete();
 API_TOKEN="这里填你的小组件密钥"
 BASE_URL="https://track.alyy.de"
 
-DATA=$(curl -s -H "Authorization: Bearer $API_TOKEN" "$BASE_URL/api/data/checkin")
+# 获取数据 (添加 5 秒超时保护)
+DATA=$(curl -s --connect-timeout 5 -H "Authorization: Bearer $API_TOKEN" "$BASE_URL/api/data/checkin")
+EXIT_CODE=$?
 TODAY=$(date +%F)
+
+# 1. 检查网络连通性
+if [ $EXIT_CODE -ne 0 ] || [ -z "$DATA" ]; then
+    echo "⚠️ 网络错误 | color=red"
+    exit 0
+fi
 
 # 解析 JSON 原生数据 (使用 Mac 自带的 Python 避免安装 jq)
 parse_json() {
-    python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('$TODAY', {}).get('$1', 'null'))"
+    python3 -c "import sys, json; 
+try:
+    data=json.load(sys.stdin);
+    print(data.get('$TODAY', {}).get('$1', 'null'))
+except:
+    print('error')"
 }
 
 DURATION=$(echo $DATA | parse_json "duration")
-if [ "$DURATION" == "null" ]; then DURATION=0; fi
-
 RUNNING_SINCE=$(echo $DATA | parse_json "timerRunningSince")
+
+# 2. 检查解析是否成功
+if [ "$DURATION" == "error" ] || [ "$RUNNING_SINCE" == "error" ]; then
+    echo "🌀 同步中... | color=#9ca3af"
+    exit 0
+fi
+
+if [ "$DURATION" == "null" ]; then DURATION=0; fi
 
 # 格式化时间函数
 format_time() {
@@ -244,6 +263,13 @@ if [ "$RUNNING_SINCE" != "null" ]; then
     NOW=$(date +%s)
     RUNNING_SINCE_SEC=$((RUNNING_SINCE / 1000))
     ELAPSED=$((NOW - RUNNING_SINCE_SEC))
+    
+    # 3. 安全检查：防止计算溢出
+    if [ $ELAPSED -lt 0 ] || [ $ELAPSED -gt 86400 ]; then
+        echo "⏳ 正在校准... | color=#9ca3af"
+        exit 0
+    fi
+
     TOTAL=$((DURATION + ELAPSED))
     echo "🔥 专注中: $(format_time $TOTAL) | color=#8EAA90"
 else
