@@ -2602,19 +2602,7 @@
                                     saveData();
                                 }
                             });
-                        } else if (syncCounter % 10 === 0) {
-                            // 日常 10 秒高频探活
-                            apiCall('/data/checkin').then(res => {
-                                if (res && res[currentDay]) {
-                                    if (res[currentDay].timerRunningSince === null && isTimerRunning) {
-                                        console.log('High-frequency check: Detected external shortcut stop.');
-                                        syncRemoteStop(currentDay, res[currentDay].duration);
-                                    }
-                                }
-                            });
                         }
-
-
                         updateTimerUI(total);
                     }, 1000);
                 } else {
@@ -2644,6 +2632,23 @@
                 startBtn.classList.remove('hidden');
                 pauseBtn.classList.add('hidden');
                 updateTimerUI(accumulatedSeconds);
+            }
+
+            // 同步远端运行状态（发现云端在奔跑且本地在睡觉时，立刻跟进云端节奏）
+            function syncRemoteStart(day, remoteRunningSince, remoteDuration) {
+                // 接管云端算好的底座时间
+                accumulatedSeconds = remoteDuration || 0;
+                localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
+                
+                // 接管云端正在跑的时间点
+                localStorage.setItem(getUserKey('active_start'), remoteRunningSince.toString());
+                localStorage.setItem(getUserKey('last_date'), day);
+                
+                if (!checkinData[day]) checkinData[day] = { duration: 0 };
+                checkinData[day].timerRunningSince = remoteRunningSince;
+                checkinData[day].duration = accumulatedSeconds;
+                
+                refreshTimerState(); // 重建本地时间神级循环
             }
 
             function updateTimerUI(totalSecs) {
@@ -2696,14 +2701,22 @@
                 saveData(); // 暂停即持久化到服务器
             });
 
-            // 监听文档可见性，实现刚用完快捷指令切回电脑时立马同步
+            // 监听文档可见性，实现刚用完快捷指令切回电脑时立马同步接管（双向侦测）
             document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && isTimerRunning) {
+                if (document.visibilityState === 'visible') {
                     const today = getTodayString();
                     apiCall('/data/checkin').then(res => {
-                        if (res && res[today] && res[today].timerRunningSince === null) {
-                            console.log('Visibility check: Detected external shortcut stop. Pausing local timer safely.');
-                            syncRemoteStop(today, res[today].duration);
+                        if (res && res[today]) {
+                            const remoteRunningSince = res[today].timerRunningSince;
+                            const remoteDuration = res[today].duration || 0;
+
+                            if (remoteRunningSince === null && isTimerRunning) {
+                                console.log('Visibility check: Detected external shortcut stop.');
+                                syncRemoteStop(today, remoteDuration);
+                            } else if (remoteRunningSince !== null && !isTimerRunning) {
+                                console.log('Visibility check: Detected external shortcut start.');
+                                syncRemoteStart(today, remoteRunningSince, remoteDuration);
+                            }
                         }
                     });
                 }
@@ -2737,6 +2750,26 @@
                 });
             });
             updatePhaseUI();
+
+            // 初始化全局静默感应（对称接管生死状态）
+            if (window.globalSyncInterval) clearInterval(window.globalSyncInterval);
+            window.globalSyncInterval = setInterval(() => {
+                const today = getTodayString();
+                apiCall('/data/checkin').then(res => {
+                    if (res && res[today]) {
+                        const remoteRunningSince = res[today].timerRunningSince;
+                        const remoteDuration = res[today].duration || 0;
+
+                        if (remoteRunningSince === null && isTimerRunning) {
+                            console.log('Global Sync: Detected external shortcut stop.');
+                            syncRemoteStop(today, remoteDuration);
+                        } else if (remoteRunningSince !== null && !isTimerRunning) {
+                            console.log('Global Sync: Detected external shortcut start.');
+                            syncRemoteStart(today, remoteRunningSince, remoteDuration);
+                        }
+                    }
+                });
+            }, 10000); // 10秒级高频心跳探测跨端信号
 
             // 初始化界面
             refreshTimerState();
