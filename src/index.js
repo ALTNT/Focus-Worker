@@ -72,6 +72,25 @@ app.post('/api/action/shortcut', async (c) => {
   }
   
   await c.env.DB.put(dbKey, JSON.stringify(checkinData))
+
+  // 🔥 同步更新排行榜
+  c.executionCtx.waitUntil((async () => {
+    const profileRaw = await c.env.DB.get(`data:${username}:profile`)
+    const profile = profileRaw ? JSON.parse(profileRaw) : {}
+    const isOptOut = await c.env.DB.get(`data:${username}:opt_out`) === 'true'
+    
+    if (isOptOut) {
+      await c.env.DB.delete(`leaderboard:${today}:${username}`)
+    } else {
+      await c.env.DB.put(`leaderboard:${today}:${username}`, JSON.stringify({
+        duration: checkinData[today].duration,
+        nickname: profile.nickname || null,
+        avatar: profile.avatarBase64 || null,
+        updatedAt: Date.now()
+      }), { expirationTtl: 60 * 60 * 24 * 7 })
+    }
+  })())
+
   return c.json({ success: true, today, data: checkinData[today] })
 })
 
@@ -341,8 +360,34 @@ app.post('/api/user/upload', async (c) => {
 app.get('/api/data/:key', async (c) => {
   const username = c.get('username')
   const key = c.req.param('key')
-  const data = await c.env.DB.get(`data:${username}:${key}`)
-  return c.json(data ? JSON.parse(data) : null)
+  const rawData = await c.env.DB.get(`data:${username}:${key}`)
+  const data = rawData ? JSON.parse(rawData) : null
+
+  // 🔥 核心补丁：被动式全平台同步 (Passive Sync)
+  // 如果是获取打卡数据，且计时器正在运行，则顺手把最新的精准时长同步到排行榜
+  if (key === 'checkin' && data) {
+    const today = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0]
+    if (data[today] && data[today].timerRunningSince) {
+      const elapsed = Math.floor((Date.now() - data[today].timerRunningSince) / 1000)
+      const currentDuration = (data[today].duration || 0) + (elapsed > 12 * 3600 ? 12 * 3600 : elapsed)
+      
+      // 异步执行，不阻塞用户主请求
+      c.executionCtx.waitUntil((async () => {
+        // 获取个人资料获取昵称和头像
+        const profileRaw = await c.env.DB.get(`data:${username}:profile`)
+        const profile = profileRaw ? JSON.parse(profileRaw) : {}
+        
+        await c.env.DB.put(`leaderboard:${today}:${username}`, JSON.stringify({
+          duration: currentDuration,
+          nickname: profile.nickname || null,
+          avatar: profile.avatarBase64 || null,
+          updatedAt: Date.now()
+        }), { expirationTtl: 60 * 60 * 24 * 7 })
+      })())
+    }
+  }
+
+  return c.json(data)
 })
 
 app.post('/api/data/:key', async (c) => {
