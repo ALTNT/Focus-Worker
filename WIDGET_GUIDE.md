@@ -19,21 +19,28 @@
 
 我们已经为你准备好了极致化繁为简的 `timer_toggle` （智能热切换）接口：**点一次开始计时，再点一次完美保存下班！**
 
-### 步骤详解
-1. 在 Apple 手机或自带的 Mac Finder 中打开自带的 **「快捷指令 (Shortcuts)」** 应用，新建一个快捷指令名称（例如：`打卡上下班`）。
-2. 在搜索框搜索 **“获取 URL 内容”** (Get Contents of URL) 并添加这个动作。
-3. **精准配置这个框框**：
-   * **URL (网址)**：填写 👉 `https://track.alyy.de/api/action/shortcut`
-   * **方法 (Method)**：下拉选择 👉 **POST**
-   * **头部 (Headers)**：点击“添加新头部”
-     * 键 (Key)：输入 `Authorization` *(注意大小写，不要多一个空格)*
-     * 值 (Value)：输入 `Bearer 你刚才系统里复制的那一大串密钥`。**(注意 `Bearer` 和你的密码中间必须要用一个纯粹的空格隔开！)**
-   * **请求正文 (Request Body)**：下拉选择 👉 **JSON**
-     * 点击“添加新字段” ➡️ 选择**文本 (Text)**
-     * 左侧键写：`action`
-     * 右侧值写：`timer_toggle`
-4. 测试：点击右下角/右上角的播放大按钮。如果下方弹出一串形如 `{"success":true,"today":"2026..."}` 的信息，说明大功告成！
-5. **最后一步**：在快捷指令名称右侧点击图标，选择 **添加到主屏幕 (Add to Home Screen)**。
+### 最简配置法（一键安装）✨推荐！
+
+为了让你连配置都省去，这里已经为你打包好了配置好的标准快捷指令模板：
+
+**👉 点击一键获取 Apple 快捷指令模板**：[**获取上下班打卡捷径**](https://www.icloud.com/shortcuts/610474ee2ae14068aede8fa27fdbced6) *(请在装有“快捷指令”App的手机或Mac上点击)*
+
+**安装与修改步骤**：
+1. 点击上方链接，选择【获取快捷指令】将它添加到你的设备中。
+2. 打开该指令的【编辑】页面。
+3. 找到里面唯一的“获取 URL 内容”框框，点开【头部 (Headers)】。
+4. 将里面 `Authorization` 后面的值：`Bearer 这里换成自己的密串`，替换成 **你刚才在网页里复制的那个小组件密钥**。
+   *(⚠️非常重要：保留前面的 `Bearer ` 和空格，只替换掉后面的中文提示部分)*
+   ![alt text](WIDGET_GUIDE/image-1.png)
+5. **最后一步**：在首页长按该指令或在编辑页内点击菜单，选择 **添加到主屏幕 (Add to Home Screen)**，即可在桌面享受极速单击上下班！
+
+---
+
+*(如果你想自己从头手动搭建，核心参数如下：*
+* *URL: `https://track.alyy.de/api/action/shortcut`*
+* *方法: `POST`*
+* *Header: `Authorization` -> `Bearer 你的完整密钥`*
+* *JSON Body: `{"action": "timer_toggle"}` )*
 
 ![alt text](WIDGET_GUIDE/image.png)
 *🎉 从今往后，不管是在路上还是躺在床上，点一下就开始专注计时，再点一下就下班结算存入云端系统里！*
