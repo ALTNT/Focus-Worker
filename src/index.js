@@ -29,6 +29,52 @@ const authMiddleware = async (c, next) => {
 
 app.use('/api/data/*', authMiddleware)
 app.use('/api/user/*', authMiddleware)
+app.use('/api/action/*', authMiddleware)
+
+// --- Action API for Shortcuts / Widgets ---
+app.post('/api/action/shortcut', async (c) => {
+  const username = c.get('username')
+  const payload = await c.req.json()
+  const { action } = payload
+  if (!action) return c.json({ error: 'Missing action field' }, 400)
+  
+  // Get today's local date string (China UTC+8 for simplicity, or use server UTC date)
+  const today = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0]
+  const dbKey = `data:${username}:checkin`
+  
+  const rawData = await c.env.DB.get(dbKey)
+  let checkinData = rawData ? JSON.parse(rawData) : {}
+  if (!checkinData[today]) {
+    checkinData[today] = { duration: 0, phases: [], mood: '', habits: [] }
+  }
+  
+  if (action === 'timer_start') {
+    // Save server-side timer start timestamp
+    checkinData[today].timerRunningSince = Date.now()
+  } else if (action === 'timer_stop') {
+    if (checkinData[today].timerRunningSince) {
+      const elapsedSecs = Math.floor((Date.now() - checkinData[today].timerRunningSince) / 1000)
+      checkinData[today].duration = (checkinData[today].duration || 0) + (elapsedSecs > 12 * 3600 ? 12 * 3600 : elapsedSecs)
+      checkinData[today].timerRunningSince = null
+    }
+  } else if (action === 'timer_toggle') {
+    if (checkinData[today].timerRunningSince) {
+      // It's running, so stop it
+      const elapsedSecs = Math.floor((Date.now() - checkinData[today].timerRunningSince) / 1000)
+      checkinData[today].duration = (checkinData[today].duration || 0) + (elapsedSecs > 12 * 3600 ? 12 * 3600 : elapsedSecs)
+      checkinData[today].timerRunningSince = null
+    } else {
+      // It's stopped, so start it
+      checkinData[today].timerRunningSince = Date.now()
+    }
+  } else {
+    return c.json({ error: 'Unknown action' }, 400)
+  }
+  
+  await c.env.DB.put(dbKey, JSON.stringify(checkinData))
+  return c.json({ success: true, today, data: checkinData[today] })
+})
+
 app.use('/api/leaderboard/*', authMiddleware)
 
 // Salting helper (username-based salt)
