@@ -88,6 +88,9 @@ app.post('/api/action/shortcut', async (c) => {
         avatar: profile.avatarBase64 || null,
         updatedAt: Date.now()
       }), { expirationTtl: 60 * 60 * 24 * 7 })
+
+      // ⚡️ 标记已刷新：60 秒内禁止被动轮询再次同步
+      await c.env.DB.put(`lock:leaderboard:${username}`, 'true', { expirationTtl: 60 })
     }
   })())
 
@@ -373,16 +376,25 @@ app.get('/api/data/:key', async (c) => {
       
       // 异步执行，不阻塞用户主请求
       c.executionCtx.waitUntil((async () => {
+        // ⚡️ 频率限制：每个用户 60 秒内只允许自动同步一次排行榜，防止高频刷屏
+        const lockKey = `lock:leaderboard:${username}`
+        const isLocked = await c.env.DB.get(lockKey)
+        if (isLocked) return
+
         // 获取个人资料获取昵称和头像
         const profileRaw = await c.env.DB.get(`data:${username}:profile`)
         const profile = profileRaw ? JSON.parse(profileRaw) : {}
         
+        // 执行同步
         await c.env.DB.put(`leaderboard:${today}:${username}`, JSON.stringify({
           duration: currentDuration,
           nickname: profile.nickname || null,
           avatar: profile.avatarBase64 || null,
           updatedAt: Date.now()
         }), { expirationTtl: 60 * 60 * 24 * 7 })
+
+        // 埋下 60 秒锁定标记
+        await c.env.DB.put(lockKey, 'true', { expirationTtl: 60 })
       })())
     }
   }
