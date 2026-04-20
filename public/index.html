@@ -2593,7 +2593,7 @@
                                 if (res && res[currentDay]) {
                                     if (res[currentDay].timerRunningSince === null && isTimerRunning) {
                                         console.log('Safe-Save check: Detected external shortcut stop.');
-                                        pauseBtn.click();
+                                        syncRemoteStop(currentDay, res[currentDay].duration);
                                         safelyStopped = true;
                                     }
                                 }
@@ -2608,11 +2608,12 @@
                                 if (res && res[currentDay]) {
                                     if (res[currentDay].timerRunningSince === null && isTimerRunning) {
                                         console.log('High-frequency check: Detected external shortcut stop.');
-                                        pauseBtn.click();
+                                        syncRemoteStop(currentDay, res[currentDay].duration);
                                     }
                                 }
                             });
                         }
+
 
                         updateTimerUI(total);
                     }, 1000);
@@ -2623,6 +2624,26 @@
                     pauseBtn.classList.add('hidden');
                     updateTimerUI(accumulatedSeconds);
                 }
+            }
+
+            // 同步远端暂停状态（绝不使用本地计算的时间盲目覆盖云端真实时间）
+            function syncRemoteStop(day, remoteDuration) {
+                isTimerRunning = false;
+                if (timerInterval) clearInterval(timerInterval);
+                localStorage.removeItem(getUserKey('active_start'));
+                
+                // 绝对信任并使用服务器算好的准确时长
+                accumulatedSeconds = remoteDuration || 0;
+                localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
+                
+                if (checkinData[day]) {
+                    checkinData[day].timerRunningSince = null;
+                    checkinData[day].duration = accumulatedSeconds;
+                }
+                
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                updateTimerUI(accumulatedSeconds);
             }
 
             function updateTimerUI(totalSecs) {
@@ -2681,8 +2702,8 @@
                     const today = getTodayString();
                     apiCall('/data/checkin').then(res => {
                         if (res && res[today] && res[today].timerRunningSince === null) {
-                            console.log('Visibility check: Detected external shortcut stop. Pausing local timer.');
-                            pauseBtn.click();
+                            console.log('Visibility check: Detected external shortcut stop. Pausing local timer safely.');
+                            syncRemoteStop(today, res[today].duration);
                         }
                     });
                 }
