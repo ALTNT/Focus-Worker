@@ -196,6 +196,25 @@ app.post('/api/user/change-password', async (c) => {
   return c.json({ success: true, message: '密码修改成功' })
 })
 
+// Widget Integration: Generate Long-Lived Token (10 years)
+app.post('/api/user/widget-token', async (c) => {
+  const username = c.get('username')
+  const db = c.env.DB
+  const userDataStr = await db.get(`user:${username}`)
+  if (!userDataStr) return c.json({ error: '用户不存在' }, 401)
+  
+  const userData = JSON.parse(userDataStr)
+  const role = userData.role || 'phd'
+  
+  // 10 years expiration for widget API access
+  const token = await sign(
+    { username, role, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365 * 10 },
+    c.env.JWT_SECRET,
+    'HS256'
+  )
+  return c.json({ success: true, token })
+})
+
 // S3 Upload API (Proxy to hi168.com)
 app.post('/api/user/upload', async (c) => {
   const username = c.get('username')

@@ -3,7 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
     <title id="page-title">学生工位打卡与时间管理系统</title>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -3803,6 +3806,39 @@
                 closeTaskEditModal();
             }
         };
+
+        // --- Widget & Automation Token ---
+        window.generateWidgetToken = async function() {
+            const btn = document.getElementById('generate-widget-token-btn');
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 生成中...';
+            try {
+                const res = await fetch('/api/user/widget-token', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('auth_token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    btn.classList.add('hidden');
+                    document.getElementById('widget-token-container').classList.remove('hidden');
+                    document.getElementById('widget-token-input').value = data.token;
+                } else {
+                    alert('获取失败: ' + data.error);
+                }
+            } catch(e) {
+                alert('网络异常');
+            } finally {
+                btn.innerHTML = '<i class="fa fa-key"></i> 点击获取小组件密钥';
+            }
+        }
+
+        window.copyWidgetToken = function() {
+            const input = document.getElementById('widget-token-input');
+            input.select();
+            input.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(input.value).then(() => {
+                alert('长期密钥已复制！马上填入快捷指令或小组件脚本中吧。');
+            });
+        }
     </script>
     <!-- 论文/投稿日志弹窗 -->
     <div id="logs-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden pt-10 pb-10">
@@ -3943,6 +3979,26 @@
                     <div class="pt-2">
                         <button id="submit-password-btn"
                             class="w-full bg-white text-text/80 border border-secondary hover:border-primary py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">修改密码</button>
+                    </div>
+                </div>
+
+                <hr class="border-secondary/30 my-8">
+
+                <h3 class="text-sm font-bold text-text/60 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i class="fa fa-cogs text-primary"></i> 自动化与桌面小组件
+                </h3>
+                <div class="bg-white p-4 rounded-xl border border-secondary/30 text-xs shadow-sm">
+                    <p class="text-text/60 mb-3 leading-relaxed">获取 10年长期 API 密钥，配合 Apple 快捷指令或桌面组件，实现无需打开网页的极速打卡与状态查看。</p>
+                    <button id="generate-widget-token-btn" onclick="generateWidgetToken()"
+                        class="w-full bg-secondary/10 hover:bg-secondary/30 text-text/80 py-2.5 rounded-xl font-bold transition-all border border-secondary/50">
+                        <i class="fa fa-key"></i> 点击获取小组件密钥
+                    </button>
+                    <div id="widget-token-container" class="mt-3 hidden">
+                        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 p-2 rounded-lg">
+                            <input type="text" id="widget-token-input" readonly class="bg-transparent border-none flex-1 font-mono text-[10px] text-gray-500 outline-none h-6">
+                            <button onclick="copyWidgetToken()" class="text-primary hover:text-primary/80 px-2" title="复制密钥"><i class="fa fa-copy text-lg"></i></button>
+                        </div>
+                        <p class="text-[9px] text-red-500 mt-1.5 font-bold"><i class="fa fa-warning"></i> 警告：该密钥用于绕过登录直接调用您的所有数据，请绝对保密！</p>
                     </div>
                 </div>
             </div>
