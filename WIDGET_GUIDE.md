@@ -245,10 +245,10 @@ if [ "$RUNNING_SINCE" != "null" ]; then
     RUNNING_SINCE_SEC=$((RUNNING_SINCE / 1000))
     ELAPSED=$((NOW - RUNNING_SINCE_SEC))
     TOTAL=$((DURATION + ELAPSED))
-    echo "▶️ $(format_time $TOTAL) | color=#8EAA90"
+    echo "🔥 专注中: $(format_time $TOTAL) | color=#8EAA90"
 else
     # 已暂停
-    echo "⏸️ $(format_time $DURATION) | color=#9ca3af"
+    echo "☕ 休息中: $(format_time $DURATION) | color=#9ca3af"
 fi
 
 echo "---"
