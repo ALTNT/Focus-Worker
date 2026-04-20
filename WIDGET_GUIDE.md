@@ -145,3 +145,51 @@ statusLabel.textColor = isRunning ? new Color("#d97706") : new Color("#9ca3af");
 Script.setWidget(widget);
 Script.complete();
 ```
+
+---
+
+## 🤖 进阶玩法三：Android (安卓) 的极速打卡与挂件
+
+考虑到 Android 更开放的桌面生态，你可以拥有比 iOS 更深度的自动化体验：
+
+1. **一键打卡发包神器 —— 【HTTP Shortcuts】 (强烈推荐)**
+   * 这是一套在 Android 端全免费开源的极客软件。
+   * 打开软件后建立一个新捷径：
+     * **方法 (Method)** 选 `POST`
+     * **URL** 填 👉 `https://track.alyy.de/api/action/shortcut`
+     * **Headers (请求头)** 添加一条：键为 `Authorization`，值为 `Bearer 你的完整小组件密钥`
+     * **Body (请求体)** 选 JSON 或文本，填入 `{"action": "timer_toggle"}`
+   * **完美体验**：你可以直接将它作为一个小巧美观的图标发送到安卓桌面，甚至可以将它常驻在你的手机下拉通知栏面板里！无需切应用，一键上下班！
+
+2. **物理/情景自动化 —— 【Tasker / MacroDroid】**
+   * 作为安卓的最强自动化软件，你可以设定各类场景。
+   * 例如：“当手机连上实验室的 WiFi 时”、“当手机贴近工位上的 NFC 贴纸时”，自动对上述 URL 发送同样的 POST 网络请求，实现“连手机屏幕都不用亮，物理级无感打卡”。
+
+3. **自由定制桌面看板 —— 【KWGT】**
+   * Android 最顶级的桌面美化工具。通过添加一个 `Web Request` (网页请求)，填入 `https://track.alyy.de/api/data/checkin` 和认证头部进行抓取。
+   * 你可以配合你那绝美的安卓抽屉，把 `duration` 这个专注时长变量以任何惊人的排版形态展示在主屏幕上！
+
+---
+
+## 💻 进阶玩法四：Windows 桌面的双击与盲按打卡
+
+使用 Windows 操作系统的电脑时，除了点开网页，你同样可以通过极客手段实现原生打卡。
+
+1. **写一个最简单的批处理脚本（双击打卡）**
+   在你的 Windows 电脑桌面上新建一个文本文档，改名为 `一键打卡.bat`（注意后缀必须是 `.bat`），然后右键选择编辑，把下面这段标准代码粘贴进去（记得替换其中的密钥）：
+   ```bat
+   @echo off
+   curl -X POST "https://track.alyy.de/api/action/shortcut" ^
+        -H "Authorization: Bearer 这里填你的长期密钥" ^
+        -H "Content-Type: application/json" ^
+        -d "{\"action\": \"timer_toggle\"}"
+   ```
+   **大功告成**：以后每次你想进入高度专注状态，或是下班走人，只需要在桌面上双击一下这个文件，它会闪过一个黑框，并在云端为你精准记录时间！
+
+2. **高级极客指令：一键键盘盲按打卡 (AutoHotkey)**
+   如果你精通快捷键，可以下载开源小软件 **AutoHotkey**。
+   配置脚本把上面的 HTTP 请求绑定在诸如 `Ctrl + Alt + T` 这种全范围无冲突的快捷键上。
+   这意味着，不管你此刻在电脑上看文献、看剧还是写代码，只要盲按这三个键，不用切换任何窗口，你就悄悄在后台完成了一次完美的打卡操作！
+
+---
+🎉 **架构通用性优势：** 因为我们的核心采用了最高级也是最泛用的 JSON 标准接口（RESTful）配合长效 Token。这套“外围极客生态圈”能够完美兼容市面上的所有智能设备。尽情享受全平台打卡的快感吧！
