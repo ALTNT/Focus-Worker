@@ -246,7 +246,8 @@ parse_json() {
     python3 -c "import sys, json; 
 try:
     data=json.load(sys.stdin);
-    print(data.get('$TODAY', {}).get('$1', 'null'))
+    val=data.get('$TODAY', {}).get('$1');
+    print('null' if val is None else val)
 except:
     print('error')"
 }
