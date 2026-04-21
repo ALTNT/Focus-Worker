@@ -385,6 +385,23 @@
                         </div>
                         <p class="mt-6 text-[10px] text-text/40 font-bold uppercase tracking-widest">* 专注时长将自动累计至今日研习统计
                         </p>
+
+                        <!-- 今日专注时间轴 -->
+                        <div id="session-timeline-wrap" class="mt-6 text-left" style="display:none">
+                            <p class="text-xs font-bold text-text/40 uppercase tracking-widest mb-3">今日专注时段</p>
+                            <div class="relative h-6 bg-secondary/30 rounded-full overflow-hidden" id="session-timeline-bar">
+                                <!-- JS 动态渲染专注时段 -->
+                            </div>
+                            <div class="flex justify-between mt-1.5">
+                                <span class="text-[10px] text-text/30 font-mono">06:00</span>
+                                <span class="text-[10px] text-text/30 font-mono">12:00</span>
+                                <span class="text-[10px] text-text/30 font-mono">18:00</span>
+                                <span class="text-[10px] text-text/30 font-mono">24:00</span>
+                            </div>
+                            <div id="session-timeline-labels" class="mt-2 flex flex-wrap gap-2">
+                                <!-- 每段时间的标签 -->
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 三段式研习 与 每日必打卡 (双列布局) -->
@@ -1829,6 +1846,7 @@
             localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
 
             initFocusTimer();
+            renderSessionTimeline();
             initHabitCheckin();
             initPhoneResist();
             initTaskManagement();
@@ -2524,6 +2542,71 @@
             }
         }
 
+        // --- 今日专注时间轴 ---
+        function renderSessionTimeline() {
+            const wrap = document.getElementById('session-timeline-wrap');
+            const bar = document.getElementById('session-timeline-bar');
+            const labels = document.getElementById('session-timeline-labels');
+            if (!wrap || !bar || !labels) return;
+
+            const today = getTodayString();
+            const todaySessions = checkinData[today]?.sessions || [];
+
+            // 如果没有任何 session，隐藏时间轴
+            if (todaySessions.length === 0) {
+                wrap.style.display = 'none';
+                return;
+            }
+            wrap.style.display = 'block';
+
+            // 时间轴范围：06:00 ~ 24:00 = 18小时 = 64800秒
+            const timelineStartHour = 6;
+            const timelineEndHour = 24;
+            const totalMinutes = (timelineEndHour - timelineStartHour) * 60;
+
+            const tsToMinutesFromStart = (ts) => {
+                const d = new Date(ts);
+                const minutesSinceMidnight = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+                return minutesSinceMidnight - timelineStartHour * 60;
+            };
+
+            // 渲染时间段块
+            bar.innerHTML = '';
+            todaySessions.forEach((session, idx) => {
+                const startMin = Math.max(0, tsToMinutesFromStart(session.start));
+                const endMin = session.end
+                    ? Math.min(totalMinutes, tsToMinutesFromStart(session.end))
+                    : Math.min(totalMinutes, tsToMinutesFromStart(Date.now())); // 正在进行中：延伸到现在
+
+                if (endMin <= startMin) return;
+
+                const leftPct = (startMin / totalMinutes) * 100;
+                const widthPct = ((endMin - startMin) / totalMinutes) * 100;
+
+                const block = document.createElement('div');
+                block.style.cssText = `position:absolute; left:${leftPct}%; width:${widthPct}%; height:100%; background: var(--color-primary, #8EAA90); opacity: ${session.end ? '0.75' : '1'}; border-radius: 4px;`;
+                if (!session.end) {
+                    block.style.animation = 'pulse 2s ease-in-out infinite';
+                }
+                bar.appendChild(block);
+            });
+
+            // 渲染时间段标签
+            labels.innerHTML = '';
+            todaySessions.forEach((session, idx) => {
+                const fmt = (ts) => {
+                    const d = new Date(ts);
+                    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+                };
+                const startLabel = fmt(session.start);
+                const endLabel = session.end ? fmt(session.end) : '进行中';
+                const pill = document.createElement('span');
+                pill.className = `text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${session.end ? 'bg-secondary/40 text-text/50' : 'bg-primary/10 text-primary border border-primary/20'}`;
+                pill.textContent = `${startLabel} – ${endLabel}`;
+                labels.appendChild(pill);
+            });
+        }
+
         // --- 专注于研习：计时器系统 ---
         function initFocusTimer() {
             const display = document.getElementById('timer-display');
@@ -2673,7 +2756,12 @@
                 if (!checkinData[today]) checkinData[today] = { duration: 0 };
                 checkinData[today].timerRunningSince = nowTs;
 
+                // 记录本次专注 session 的开始时间
+                if (!checkinData[today].sessions) checkinData[today].sessions = [];
+                checkinData[today].sessions.push({ start: nowTs, end: null });
+
                 refreshTimerState();
+                renderSessionTimeline();
                 saveData(); // <--- 重要：告诉服务器计时开始，方便连通快捷指令
             });
 
@@ -2697,9 +2785,15 @@
                 const today = getTodayString();
                 if (checkinData[today]) {
                     checkinData[today].timerRunningSince = null;
+                    // 填写最后一个 session 的结束时间
+                    if (checkinData[today].sessions && checkinData[today].sessions.length > 0) {
+                        const lastSession = checkinData[today].sessions[checkinData[today].sessions.length - 1];
+                        if (lastSession.end === null) lastSession.end = now;
+                    }
                 }
 
                 refreshTimerState();
+                renderSessionTimeline();
                 saveData(); // 暂停即持久化到服务器
             });
 
