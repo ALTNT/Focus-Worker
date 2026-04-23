@@ -3,31 +3,32 @@
  */
 
 // --- 全局状态变量 ---
-let checkinData = {};       // 记录每日专注时长: { 'YYYY-MM-DD': { duration: 0, phases: [], mood: '' } }
-let phoneResistData = { totalCount: 0, records: {} };
-let taskData = { longterm: [], daily: {} }; // 任务结构
-let leaveData = [];
-let achievements = [];
-let papersData = [];
-let submissionsData = [];
-let userProfile = { nickname: '', avatarBase64: '' };
-let _authToken = null;
-let _username = null;       // 当前登录用户名
-let _dataLoaded = false;
+var checkinData = {};       // 记录每日专注时长: { 'YYYY-MM-DD': { duration: 0, phases: [], mood: '' } }
+var phoneResistData = { totalCount: 0, records: {} };
+var taskData = { longterm: [], daily: {} }; // 任务结构
+var leaveData = [];
+var achievements = [];
+var papersData = [];
+var submissionsData = [];
+var userProfile = { nickname: '', avatarBase64: '' };
+var _authToken = null;
+var _username = null;       // 当前登录用户名
+var _dataLoaded = false;
 
 // 专注计时器状态
-let timerInterval = null;
-let timerStartTime = null;  // 当前会话开始的时间戳 (ms)
-let accumulatedSeconds = 0; // 今日已累计完成的秒数 (base)
-let isTimerRunning = false;
-let syncCounter = 0; // 自动同步计数器
+var timerInterval = null;
+var timerStartTime = null;  // 当前会话开始的时间戳 (ms)
+var accumulatedSeconds = 0; // 今日已累计完成的秒数 (base)
+var isTimerRunning = false;
+var syncCounter = 0; // 自动同步计数器
+var lastLocalActionTime = 0; // 最近一次本地操作时间
 
 // 统计分析全局状态
-let currentStatsMonth = new Date();
-let viewingDate = null; // 当前正在查看的任务日期，默认为 null (即今天)
+var currentStatsMonth = new Date();
+var viewingDate = null; // 当前正在查看的任务日期，默认为 null (即今天)
 
-let _lastSavedValues = {};
-let _saveTimeout = null;
+var _lastSavedValues = {};
+var _saveTimeout = null;
 
 // --- 核心状态函数 ---
 
