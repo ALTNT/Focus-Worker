@@ -51,21 +51,40 @@ app.post('/api/action/shortcut', async (c) => {
   if (action === 'timer_start') {
     // Save server-side timer start timestamp
     checkinData[today].timerRunningSince = Date.now()
+    // Push a new session entry
+    if (!checkinData[today].sessions) checkinData[today].sessions = [];
+    checkinData[today].sessions.push({ start: checkinData[today].timerRunningSince, end: null })
   } else if (action === 'timer_stop') {
     if (checkinData[today].timerRunningSince) {
-      const elapsedSecs = Math.floor((Date.now() - checkinData[today].timerRunningSince) / 1000)
+      const now = Date.now()
+      const elapsedSecs = Math.floor((now - checkinData[today].timerRunningSince) / 1000)
       checkinData[today].duration = (checkinData[today].duration || 0) + (elapsedSecs > 12 * 3600 ? 12 * 3600 : elapsedSecs)
+      // Close the last open session
+      if (checkinData[today].sessions && checkinData[today].sessions.length > 0) {
+        const lastSession = checkinData[today].sessions[checkinData[today].sessions.length - 1]
+        if (lastSession.end === null) lastSession.end = now
+      }
       checkinData[today].timerRunningSince = null
     }
   } else if (action === 'timer_toggle') {
     if (checkinData[today].timerRunningSince) {
       // It's running, so stop it
-      const elapsedSecs = Math.floor((Date.now() - checkinData[today].timerRunningSince) / 1000)
+      const now = Date.now()
+      const elapsedSecs = Math.floor((now - checkinData[today].timerRunningSince) / 1000)
       checkinData[today].duration = (checkinData[today].duration || 0) + (elapsedSecs > 12 * 3600 ? 12 * 3600 : elapsedSecs)
+      // Close the last open session
+      if (checkinData[today].sessions && checkinData[today].sessions.length > 0) {
+        const lastSession = checkinData[today].sessions[checkinData[today].sessions.length - 1]
+        if (lastSession.end === null) lastSession.end = now
+      }
       checkinData[today].timerRunningSince = null
     } else {
       // It's stopped, so start it
-      checkinData[today].timerRunningSince = Date.now()
+      const now = Date.now()
+      checkinData[today].timerRunningSince = now
+      // Push a new session entry
+      if (!checkinData[today].sessions) checkinData[today].sessions = [];
+      checkinData[today].sessions.push({ start: now, end: null })
     }
   } else {
     return c.json({ error: 'Unknown action' }, 400)
