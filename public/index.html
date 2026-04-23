@@ -1174,7 +1174,9 @@
         </div>
     </div>
 
+    <script src="js/utils.js"></script>
     <script>
+
         // 全局变量 - 莫兰迪专注系统
         let checkinData = {};       // 记录每日专注时长: { 'YYYY-MM-DD': { duration: 0, phases: [] } }
         let phoneResistData = { totalCount: 0, records: {} };
@@ -1384,17 +1386,6 @@
             initAdvancedListeners();
         });
 
-        // 附件类型图标辅助函数
-        function getFileIcon(type, name) {
-            if (type.startsWith('image/')) return 'fa-file-image-o';
-            if (type.includes('pdf')) return 'fa-file-pdf-o text-red-500';
-            if (type.includes('word') || name.endsWith('.doc') || name.endsWith('.docx')) return 'fa-file-word-o text-blue-500';
-            if (type.includes('excel') || type.includes('sheet') || name.endsWith('.xls') || name.endsWith('.xlsx')) return 'fa-file-excel-o text-green-500';
-            if (type.includes('presentation') || name.endsWith('.ppt') || name.endsWith('.pptx')) return 'fa-file-powerpoint-o text-orange-500';
-            if (type.includes('zip') || type.includes('rar') || type.includes('archive') || name.endsWith('.7z')) return 'fa-file-archive-o text-purple-500';
-            if (type.includes('text') || name.endsWith('.txt')) return 'fa-file-text-o text-gray-400';
-            return 'fa-file-o text-gray-400';
-        }
 
         // 统一附件渲染函数 (处理旧字符串和新对象)
         function renderAttachmentHTML(item, options = {}) {
@@ -1597,21 +1588,6 @@
             if (headerAvatar) headerAvatar.src = userProfile.avatarBase64 || defaultAvatar;
         }
 
-        // 弹窗状态管理 (控制 body 滚动)
-        function setModalState(isOpen, modalId) {
-            if (isOpen) {
-                document.documentElement.classList.add('modal-open');
-                if (modalId) {
-                    const el = document.getElementById(modalId);
-                    if (el) {
-                        el.setAttribute('tabindex', '-1');
-                        el.focus();
-                    }
-                }
-            } else {
-                document.documentElement.classList.remove('modal-open');
-            }
-        }
 
         function openProfileModal() {
             setModalState(true, 'profile-modal');
@@ -2419,21 +2395,7 @@
         }
 
         // --- 辅助工具 ---
-        function escapeHTML(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
 
-        // 获取今日日期字符串 (YYYY-MM-DD)
-        function getTodayString() {
-            const d = new Date();
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
 
         // 存档切换逻辑
         function changeViewingDate(date) {
@@ -2465,24 +2427,8 @@
             changeViewingDate(today);
         }
 
-        function formatDateLocal(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
 
-        // 获取当前时间字符串 (HH:MM)
-        function getCurrentTimeString() {
-            const now = new Date();
-            return now.toTimeString().slice(0, 5);
-        }
 
-        // 获取当前时间对象 { hour, minute }
-        function getCurrentTime() {
-            const now = new Date();
-            return { hour: now.getHours(), minute: now.getMinutes() };
-        }
 
         // 初始化导航切换
         function initNavigation() {
@@ -2993,12 +2939,6 @@
             refreshTimerState();
         }
 
-        function formatTimerSeconds(secs) {
-            const h = Math.floor(secs / 3600);
-            const m = Math.floor((secs % 3600) / 60);
-            const s = secs % 60;
-            return `${h}h ${m}m ${s}s`;
-        }
 
         function updateTimerDisplay() {
             const el = document.getElementById('timer-display');
