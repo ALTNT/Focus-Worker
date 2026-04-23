@@ -50,10 +50,15 @@ app.post('/api/action/shortcut', async (c) => {
   
   if (action === 'timer_start') {
     // Save server-side timer start timestamp
-    checkinData[today].timerRunningSince = Date.now()
-    // Push a new session entry
+    const now = Date.now();
+    checkinData[today].timerRunningSince = now;
+    // Push a new session entry, but first close any previous trailing unclosed sessions
     if (!checkinData[today].sessions) checkinData[today].sessions = [];
-    checkinData[today].sessions.push({ start: checkinData[today].timerRunningSince, end: null })
+    if (checkinData[today].sessions.length > 0) {
+      const lastSession = checkinData[today].sessions[checkinData[today].sessions.length - 1];
+      if (lastSession.end === null) lastSession.end = now;
+    }
+    checkinData[today].sessions.push({ start: now, end: null })
   } else if (action === 'timer_stop') {
     if (checkinData[today].timerRunningSince) {
       const now = Date.now()
@@ -82,8 +87,12 @@ app.post('/api/action/shortcut', async (c) => {
       // It's stopped, so start it
       const now = Date.now()
       checkinData[today].timerRunningSince = now
-      // Push a new session entry
+      // Push a new session entry, but first close any previous trailing unclosed sessions
       if (!checkinData[today].sessions) checkinData[today].sessions = [];
+      if (checkinData[today].sessions.length > 0) {
+        const lastSession = checkinData[today].sessions[checkinData[today].sessions.length - 1];
+        if (lastSession.end === null) lastSession.end = now;
+      }
       checkinData[today].sessions.push({ start: now, end: null })
     }
   } else {

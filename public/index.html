@@ -2653,9 +2653,29 @@
                 return minutesSinceMidnight - timelineStartHour * 60;
             };
 
+            // 自动清理多端同步或断网造成的脏数据（截断未闭合的历史 session）
+            const sanitizedSessions = [...todaySessions]
+                .sort((a, b) => a.start - b.start) // 确保按时间顺序排列
+                .map((session, idx, arr) => {
+                    let effectiveEnd = session.end;
+                    // 如果当前 session 标记为进行中，但这已经不是最后一次开启的 session，将其强制闭合到下一次 start
+                    if (!effectiveEnd && idx < arr.length - 1) {
+                        effectiveEnd = Math.max(session.start, arr[idx + 1].start);
+                    }
+                    // 如果是最后一次，但本地明确没在跑，将其闭合 (不显示进行中)
+                    if (!effectiveEnd && idx === arr.length - 1 && !isTimerRunning) {
+                        effectiveEnd = session.start;
+                    }
+                    return { ...session, end: effectiveEnd };
+                }).filter(s => {
+                    // 剔除无效的 0 秒幽灵记录
+                    if (s.end && (s.end - s.start < 1000)) return false;
+                    return true;
+                });
+
             // 渲染时间段块
             bar.innerHTML = '';
-            todaySessions.forEach((session, idx) => {
+            sanitizedSessions.forEach((session) => {
                 const startMin = Math.max(0, tsToMinutesFromStart(session.start));
                 const endMin = session.end
                     ? Math.min(totalMinutes, tsToMinutesFromStart(session.end))
@@ -2676,7 +2696,14 @@
 
             // 渲染时间段标签
             labels.innerHTML = '';
-            todaySessions.forEach((session, idx) => {
+            sanitizedSessions.forEach((session) => {
+                const startMin = Math.max(0, tsToMinutesFromStart(session.start));
+                const endMin = session.end
+                    ? Math.min(totalMinutes, tsToMinutesFromStart(session.end))
+                    : Math.min(totalMinutes, tsToMinutesFromStart(Date.now()));
+                
+                if (endMin <= startMin) return;
+
                 const fmt = (ts) => {
                     const d = new Date(ts);
                     return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
