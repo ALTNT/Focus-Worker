@@ -108,8 +108,8 @@ app.post('/api/action/shortcut', async (c) => {
         updatedAt: Date.now()
       }), { expirationTtl: 60 * 60 * 24 * 7 })
 
-      // ⚡️ 标记已刷新：60 秒内禁止被动轮询再次同步
-      await c.env.DB.put(`lock:leaderboard:${username}`, 'true', { expirationTtl: 60 })
+      // ⚡️ 标记已刷新：600 秒 (10分钟) 内禁止被动轮询再次同步排行榜
+      await c.env.DB.put(`lock:leaderboard:${username}`, 'true', { expirationTtl: 600 })
     }
   })())
 
@@ -395,7 +395,7 @@ app.get('/api/data/:key', async (c) => {
       
       // 异步执行，不阻塞用户主请求
       c.executionCtx.waitUntil((async () => {
-        // ⚡️ 频率限制：每个用户 60 秒内只允许自动同步一次排行榜，防止高频刷屏
+        // ⚡️ 频率限制：每个用户 600 秒 (10分钟) 内只允许自动同步一次排行榜，防止外部探活高频刷屏
         const lockKey = `lock:leaderboard:${username}`
         const isLocked = await c.env.DB.get(lockKey)
         if (isLocked) return
@@ -412,8 +412,8 @@ app.get('/api/data/:key', async (c) => {
           updatedAt: Date.now()
         }), { expirationTtl: 60 * 60 * 24 * 7 })
 
-        // 埋下 60 秒锁定标记
-        await c.env.DB.put(lockKey, 'true', { expirationTtl: 60 })
+        // 埋下 600 秒 (10分钟) 锁定标记
+        await c.env.DB.put(lockKey, 'true', { expirationTtl: 600 })
       })())
     }
   }

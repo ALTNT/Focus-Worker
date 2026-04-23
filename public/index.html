@@ -1224,7 +1224,15 @@
             if (_authToken) opts.headers['Authorization'] = 'Bearer ' + _authToken;
             if (body !== undefined) {
                 opts.headers['Content-Type'] = 'application/json';
-                opts.body = JSON.stringify(body);
+                const bodyStr = JSON.stringify(body);
+                opts.body = bodyStr;
+                // Fetch keepalive flag 强制限制 payload < 64KB，这里严格把控安全水位(60KB以内安全)
+                // 否则带有大 Base64 头像的 profile/leaderboard 请求会被浏览器直接强杀拦截报错 (TypeError: Failed to fetch)
+                if (method === 'POST' && bodyStr.length < 60000) {
+                    opts.keepalive = true;
+                }
+            } else if (method === 'POST') {
+                opts.keepalive = true;
             }
             // 强制加盖时间戳，阻止一切浏览器/CDN缓存导致的状态不同步
             const url = '/api' + path + (opts.method === 'GET' ? `?t=${Date.now()}` : '');
@@ -1676,7 +1684,7 @@
             msgEl.classList.add('block', 'text-text/60');
 
             try {
-                await saveData();
+                await saveData(true);
                 updateHeaderProfileUI();
                 msgEl.textContent = '资料保存成功！';
                 msgEl.classList.remove('text-text/60', 'text-danger');
@@ -1737,6 +1745,21 @@
             }
         }
 
+        let _lastSavedValues = {};
+
+        function updateLastSavedValues() {
+            _lastSavedValues = {
+                checkin: JSON.stringify(checkinData),
+                phoneResist: JSON.stringify(phoneResistData),
+                task: JSON.stringify(taskData),
+                leave: JSON.stringify(leaveData),
+                papers: JSON.stringify(papersData),
+                submissions: JSON.stringify(submissionsData),
+                profile: JSON.stringify(userProfile),
+                achievements: JSON.stringify(achievements)
+            };
+        }
+
         // 核心数据初始化
         async function initData() {
             if (_dataLoaded || !_authToken) return;
@@ -1763,6 +1786,8 @@
             papersData = papers || [];
             submissionsData = subs || [];
             userProfile = prof || { nickname: '', avatarBase64: '' };
+
+            updateLastSavedValues();
 
             updateHeaderProfileUI();
 
@@ -1860,7 +1885,18 @@
             updateTodayStatus();
         }
 
-        async function saveData() {
+        let _saveTimeout = null;
+
+        function checkChanged(key, data) {
+            const str = JSON.stringify(data || null);
+            if (_lastSavedValues[key] !== str) {
+                _lastSavedValues[key] = str;
+                return true;
+            }
+            return false;
+        }
+
+        async function doSaveData() {
             const today = getTodayString();
             const liveDur = getLiveDuration();
             if (checkinData[today]) {
@@ -1869,24 +1905,67 @@
 
             const isOptOut = localStorage.getItem(getUserKey('opt_out')) === 'true';
 
-            await Promise.allSettled([
-                apiCall('/data/checkin', 'POST', checkinData),
-                apiCall('/data/phoneResist', 'POST', phoneResistData),
-                apiCall('/data/task', 'POST', taskData),
-                apiCall('/data/leave', 'POST', leaveData),
-                apiCall('/data/achievements', 'POST', achievements),
-                apiCall('/data/papers', 'POST', papersData),
-                apiCall('/data/submissions', 'POST', submissionsData),
-                apiCall('/data/profile', 'POST', userProfile),
-                apiCall('/leaderboard/update', 'POST', {
+            const payloadList = [
+                { key: 'checkin', path: '/data/checkin', data: checkinData },
+                { key: 'phoneResist', path: '/data/phoneResist', data: phoneResistData },
+                { key: 'task', path: '/data/task', data: taskData },
+                { key: 'leave', path: '/data/leave', data: leaveData },
+                { key: 'achievements', path: '/data/achievements', data: achievements },
+                { key: 'papers', path: '/data/papers', data: papersData },
+                { key: 'submissions', path: '/data/submissions', data: submissionsData },
+                { key: 'profile', path: '/data/profile', data: userProfile },
+                { key: 'leaderboard', path: '/leaderboard/update', data: {
                     date: today,
                     duration: liveDur,
                     optOut: isOptOut,
-                    nickname: userProfile.nickname,
-                    avatar: userProfile.avatarBase64
-                })
-            ]);
+                    nickname: userProfile?.nickname,
+                    avatar: userProfile?.avatarBase64
+                }}
+            ];
+
+            const promises = [];
+            for (const item of payloadList) {
+                if (checkChanged(item.key, item.data)) {
+                    promises.push(apiCall(item.path, 'POST', item.data).catch(err => {
+                        console.error('Save failed for', item.key, err);
+                        delete _lastSavedValues[item.key];
+                        throw err;
+                    }));
+                }
+            }
+
+            if (promises.length > 0) {
+                await Promise.allSettled(promises);
+            }
         }
+
+        async function saveData(immediate = false) {
+            if (immediate) {
+                if (_saveTimeout) { clearTimeout(_saveTimeout); _saveTimeout = null; }
+                return await doSaveData();
+            }
+            if (_saveTimeout) clearTimeout(_saveTimeout);
+            _saveTimeout = setTimeout(async () => {
+                _saveTimeout = null;
+                await doSaveData();
+            }, 2000);
+        }
+
+        // 页面卸载或隐藏时（切后台/关网页），强制清空防抖队列执行保存
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && _saveTimeout) {
+                clearTimeout(_saveTimeout);
+                _saveTimeout = null;
+                doSaveData();
+            }
+        });
+        window.addEventListener('beforeunload', () => {
+            if (_saveTimeout) {
+                clearTimeout(_saveTimeout);
+                _saveTimeout = null;
+                doSaveData();
+            }
+        });
 
         // 论文进度管理
         function initPapersManagement() {
@@ -2414,7 +2493,7 @@
                     const newOptOut = !currentOptOut;
                     localStorage.setItem(getUserKey('opt_out'), newOptOut.toString());
                     updateOptOutUI(newOptOut);
-                    saveData(); // 立即同步到服务器应用隐身
+                    saveData(true); // 立即同步到服务器应用隐身
                 });
             }
 
@@ -2765,7 +2844,7 @@
 
                 refreshTimerState();
                 renderSessionTimeline();
-                saveData(); // <--- 重要：告诉服务器计时开始，方便连通快捷指令
+                saveData(true); // <--- 重要：告诉服务器计时开始，使用 true 确保立刻写入不可丢失
             });
 
             pauseBtn.addEventListener('click', () => {
@@ -2797,7 +2876,7 @@
 
                 refreshTimerState();
                 renderSessionTimeline();
-                saveData(); // 暂停即持久化到服务器
+                saveData(true); // 暂停即持久化到服务器，使用 true 确保立刻写入不可丢失
             });
 
             // 监听文档可见性，实现刚用完快捷指令切回电脑时立马同步接管（双向侦测）
@@ -3962,7 +4041,7 @@
                     images: currentTaskContext.images
                 });
 
-                await saveData(); // Ensure it's saved to KV
+                await saveData(true); // Ensure it's saved to KV
 
                 renderLogHistory(task.logs);
                 document.getElementById('new-log-text').value = '';
