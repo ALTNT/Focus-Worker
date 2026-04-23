@@ -550,6 +550,10 @@
                                     <i class="fa fa-pencil-square-o"></i> <span id="task-list-title">今日任务清单</span>
                                 </h3>
                                 <div class="flex items-center gap-2">
+                                    <select id="task-history-select" onchange="changeViewingDate(this.value)"
+                                        class="text-[10px] font-bold text-text/60 focus:outline-none bg-white/50 border border-secondary/30 rounded-xl px-2 py-1 shadow-sm max-w-[140px] cursor-pointer truncate">
+                                        <option value="">📋 已有存档</option>
+                                    </select>
                                     <div
                                         class="bg-white/50 border border-secondary/30 rounded-xl px-2 py-1 flex items-center gap-1 shadow-sm">
                                         <i class="fa fa-calendar text-text/30 text-[10px]"></i>
@@ -3205,7 +3209,52 @@
             renderTasks();
         }
 
+        function populateTaskHistorySelect() {
+            const select = document.getElementById('task-history-select');
+            if (!select) return;
+
+            const today = getTodayString();
+            const activeDate = viewingDate || today;
+
+            // 获取有记录的日期并降序排序
+            const dates = Object.keys(taskData.daily || {})
+                .filter(d => taskData.daily[d] && taskData.daily[d].length > 0)
+                .sort((a, b) => new Date(b) - new Date(a));
+
+            let html = `<option value="${today}">📋 今日任务</option>`;
+            
+            const pastDates = dates.filter(d => d !== today);
+            if (pastDates.length > 0) {
+                html += `<optgroup label="往期存档记录">`;
+                pastDates.forEach(d => {
+                    const total = taskData.daily[d].length;
+                    const done = taskData.daily[d].filter(t => t.completed).length;
+                    // 如果全部完成加个 ⭐️
+                    const icon = (total === done && total > 0) ? '✅' : '📝';
+                    html += `<option value="${d}">${icon} ${d} (${done}/${total})</option>`;
+                });
+                html += `</optgroup>`;
+            }
+
+            // 保存当前滚动/选中状态以避免重绘跳动
+            const currentVal = select.value;
+            select.innerHTML = html;
+            
+            // 确保同步选中当前正在查看的日期
+            if (Array.from(select.options).some(opt => opt.value === activeDate)) {
+                select.value = activeDate;
+            } else if (activeDate !== today) {
+                // 如果当前查看的日期（可能一条任务都没有被删光了）不在列表里，补一个临时项
+                select.insertAdjacentHTML('beforeend', `<option value="${activeDate}" selected>🫙 空记录 (${activeDate})</option>`);
+                select.value = activeDate;
+            } else {
+                select.value = today;
+            }
+        }
+
         function renderTasks() {
+            populateTaskHistorySelect();
+
             const today = getTodayString();
             const activeDate = viewingDate || today;
             const isHistory = activeDate !== today;
