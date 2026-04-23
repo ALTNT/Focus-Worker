@@ -2676,7 +2676,7 @@
                                 if (res && res[currentDay]) {
                                     if (res[currentDay].timerRunningSince === null && isTimerRunning) {
                                         console.log('Safe-Save check: Detected external shortcut stop.');
-                                        syncRemoteStop(currentDay, res[currentDay].duration);
+                                        syncRemoteStop(currentDay, res[currentDay].duration, res[currentDay].sessions);
                                         safelyStopped = true;
                                     }
                                 }
@@ -2698,7 +2698,7 @@
             }
 
             // 同步远端暂停状态（绝不使用本地计算的时间盲目覆盖云端真实时间）
-            function syncRemoteStop(day, remoteDuration) {
+            function syncRemoteStop(day, remoteDuration, remoteSessions) {
                 isTimerRunning = false;
                 if (timerInterval) clearInterval(timerInterval);
                 localStorage.removeItem(getUserKey('active_start'));
@@ -2707,18 +2707,19 @@
                 accumulatedSeconds = remoteDuration || 0;
                 localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
                 
-                if (checkinData[day]) {
-                    checkinData[day].timerRunningSince = null;
-                    checkinData[day].duration = accumulatedSeconds;
-                }
+                if (!checkinData[day]) checkinData[day] = { duration: 0 };
+                checkinData[day].timerRunningSince = null;
+                checkinData[day].duration = accumulatedSeconds;
+                if (remoteSessions) checkinData[day].sessions = remoteSessions;
                 
                 startBtn.classList.remove('hidden');
                 pauseBtn.classList.add('hidden');
                 updateTimerUI(accumulatedSeconds);
+                renderSessionTimeline();
             }
 
             // 同步远端运行状态（发现云端在奔跑且本地在睡觉时，立刻跟进云端节奏）
-            function syncRemoteStart(day, remoteRunningSince, remoteDuration) {
+            function syncRemoteStart(day, remoteRunningSince, remoteDuration, remoteSessions) {
                 // 接管云端算好的底座时间
                 accumulatedSeconds = remoteDuration || 0;
                 localStorage.setItem(getUserKey('accumulated_base'), accumulatedSeconds.toString());
@@ -2730,8 +2731,10 @@
                 if (!checkinData[day]) checkinData[day] = { duration: 0 };
                 checkinData[day].timerRunningSince = remoteRunningSince;
                 checkinData[day].duration = accumulatedSeconds;
+                if (remoteSessions) checkinData[day].sessions = remoteSessions;
                 
                 refreshTimerState(); // 重建本地时间神级循环
+                renderSessionTimeline();
             }
 
             function updateTimerUI(totalSecs) {
@@ -2809,10 +2812,10 @@
 
                             if (remoteRunningSince === null && isTimerRunning) {
                                 console.log('Visibility check: Detected external shortcut stop.');
-                                syncRemoteStop(today, remoteDuration);
+                                syncRemoteStop(today, remoteDuration, res[today].sessions);
                             } else if (remoteRunningSince !== null && !isTimerRunning) {
                                 console.log('Visibility check: Detected external shortcut start.');
-                                syncRemoteStart(today, remoteRunningSince, remoteDuration);
+                                syncRemoteStart(today, remoteRunningSince, remoteDuration, res[today].sessions);
                             }
                         }
                     });
@@ -2867,10 +2870,10 @@
 
                         if (remoteRunningSince === null && isTimerRunning) {
                             console.log('Global Sync: Detected external shortcut stop.');
-                            syncRemoteStop(today, remoteDuration);
+                            syncRemoteStop(today, remoteDuration, res[today].sessions);
                         } else if (remoteRunningSince !== null && !isTimerRunning) {
                             console.log('Global Sync: Detected external shortcut start.');
-                            syncRemoteStart(today, remoteRunningSince, remoteDuration);
+                            syncRemoteStart(today, remoteRunningSince, remoteDuration, res[today].sessions);
                         }
                     }
                 });
