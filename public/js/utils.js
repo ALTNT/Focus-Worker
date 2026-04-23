@@ -74,3 +74,33 @@ function setModalState(isOpen, modalId) {
         document.documentElement.classList.remove('modal-open');
     }
 }
+// 统一附件渲染函数 (处理旧字符串和新对象)
+function renderAttachmentHTML(item, options = {}) {
+    const isLegacy = typeof item === 'string';
+    const url = isLegacy ? item : item.url;
+    const name = isLegacy ? '图片附件' : item.name;
+    const type = isLegacy ? 'image/jpeg' : (item.type || '');
+    const isImage = type.startsWith('image/');
+    const sizeClass = options.size || 'h-24';
+
+    if (isImage) {
+        return `<img src="${url}" title="${escapeHTML(name)}" class="${sizeClass} rounded-xl border border-secondary/30 object-cover cursor-zoom-in hover:brightness-95 transition-all" onclick="window.open('${url}')">`;
+    }
+
+    const iconClass = getFileIcon(type, name);
+    const clickableClass = (options.previewOnly) ? '' : 'cursor-pointer hover:bg-white transition-colors';
+    return `
+        <div onclick="${options.previewOnly ? '' : `window.open('${url}')`}" 
+            class="flex items-center gap-3 p-3 bg-white/50 border border-secondary/30 rounded-xl ${clickableClass} min-w-[160px] max-w-[240px] group shadow-sm"
+            title="${escapeHTML(name)}">
+            <div class="w-10 h-10 flex items-center justify-center bg-white rounded-lg border border-secondary/20 shrink-0">
+                <i class="fa ${iconClass} text-lg"></i>
+            </div>
+            <div class="flex-1 overflow-hidden">
+                <div class="text-[11px] font-bold text-text/80 truncate">${escapeHTML(name)}</div>
+                <div class="text-[9px] text-text/40 mt-0.5 uppercase">${isLegacy ? 'IMAGE' : (type.split('/')[1] || name.split('.').pop() || 'FILE')}</div>
+            </div>
+            ${!options.previewOnly ? `<div class="text-text/30 group-hover:text-primary transition-colors"><i class="fa fa-download text-xs"></i></div>` : ''}
+        </div>
+    `;
+}
