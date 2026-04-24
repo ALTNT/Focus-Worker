@@ -511,3 +511,121 @@ function updateHabitChart(habitData) {
         }
     });
 }
+
+function updateOptOutUI(isOptOut) {
+    const icon = document.getElementById('optout-icon');
+    const text = document.getElementById('optout-text');
+    if (!icon || !text) return;
+    if (isOptOut) {
+        icon.className = 'fa fa-eye-slash text-text/50';
+        text.textContent = '隐身模式 - 已退出排行';
+        text.className = 'text-text/50';
+    } else {
+        icon.className = 'fa fa-eye text-primary';
+        text.textContent = '公开模式 - 参与排行中';
+        text.className = 'text-primary';
+    }
+}
+
+async function fetchLeaderboard() {
+    const listEl = document.getElementById('leaderboard-list');
+    const timeEl = document.getElementById('leaderboard-update-time');
+    if (!listEl) return;
+
+    listEl.innerHTML = '<div class="text-center text-text/40 text-sm">正在加载全服数据...</div>';
+
+    try {
+        const today = getTodayString();
+        const res = await apiCall(`/leaderboard/${today}`);
+
+        const now = new Date();
+        if (timeEl) timeEl.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        if (!res || !res.leaderboard || res.leaderboard.length === 0) {
+            listEl.innerHTML = '<div class="text-center text-text/40 text-sm py-4">今日暂无排行数据</div>';
+            return;
+        }
+
+        let html = '';
+        res.leaderboard.forEach((item, index) => {
+            const hrs = (item.duration / 3600).toFixed(2);
+            const isTop1 = index === 0;
+            const isTop2 = index === 1;
+            const isTop3 = index === 2;
+            let rankHTML = `<span class="w-6 h-6 flex items-center justify-center rounded-full bg-secondary/50 text-text/60 text-xs font-bold">${index + 1}</span>`;
+
+            if (isTop1) rankHTML = `<span class="text-xl">🥇</span>`;
+            else if (isTop2) rankHTML = `<span class="text-xl">🥈</span>`;
+            else if (isTop3) rankHTML = `<span class="text-xl">🥉</span>`;
+
+            const meBadge = item.isMe ? `<span class="ml-2 px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded border border-primary/20">ME</span>` : '';
+            const meBg = item.isMe ? 'bg-primary/5 hover:bg-primary/10 border-primary/20' : 'bg-transparent hover:bg-secondary/10 border-transparent';
+
+            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.username)}&background=B7C9B5&color=fff`;
+            const avatarSrc = item.avatar || fallbackAvatar;
+
+            html += `
+                <div class="flex items-center px-2 md:px-6 py-3 border rounded-xl transition-colors ${meBg}">
+                    <div class="w-16 md:w-24">
+                        ${rankHTML}
+                    </div>
+                    <div class="flex-1 flex items-center gap-3">
+                        <img src="${avatarSrc}" class="w-8 h-8 rounded-full border border-secondary/50 object-cover shadow-sm">
+                        <span class="text-text/80 font-bold tracking-wide flex items-center">
+                            ${escapeHTML(item.username)} ${meBadge}
+                        </span>
+                    </div>
+                    <div class="w-24 md:w-32 text-right">
+                        <span class="font-mono font-bold text-lg text-primary">${hrs}</span><span class="text-text/50 text-xs ml-1 font-medium">h</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        listEl.innerHTML = html;
+    } catch (e) {
+        listEl.innerHTML = '<div class="text-center text-text/40 text-sm italic">加载失败，请重试</div>';
+    }
+}
+
+function updateTodayStatus() {
+    const today = getTodayString();
+    const activeDate = viewingDate || today;
+
+    // 侧边栏手机克制
+    const phoneStatus = document.getElementById('today-phone-count');
+    if (phoneStatus) {
+        const count = phoneResistData.records?.[activeDate]?.count || 0;
+        phoneStatus.textContent = `${count}次`;
+    }
+
+    // 侧边栏正在进行任务
+    const activeTaskStatus = document.getElementById('today-active-task');
+    if (activeTaskStatus) {
+        const dailyTasks = taskData.daily[activeDate] || [];
+        const activeTask = dailyTasks.find(t => !t.completed);
+        activeTaskStatus.textContent = activeTask ? activeTask.name : '-';
+    }
+
+    // 侧边栏打卡点点
+    const phaseDots = document.getElementById('phase-mini-dots');
+    if (phaseDots && checkinData[activeDate]?.phases) {
+        const phases = checkinData[activeDate].phases;
+        phaseDots.innerHTML = ['morning', 'afternoon', 'evening'].map(p => `
+            <div class="w-2 h-2 rounded-full ${phases.includes(p) ? 'bg-primary' : 'bg-secondary'}"></div>
+        `).join('');
+    }
+
+    // 专注时长
+    const duration = checkinData[activeDate]?.duration || 0;
+    const sidebarFocus = document.getElementById('today-focus-duration');
+    if (sidebarFocus) {
+        sidebarFocus.textContent = activeDate === today ? formatTimerSeconds(accumulatedSeconds) : formatTimerSeconds(duration);
+    }
+
+    // 顶栏同步
+    const topFocus = document.getElementById('top-today-focus');
+    if (topFocus) {
+        topFocus.textContent = activeDate === today ? formatTimerSeconds(accumulatedSeconds) : formatTimerSeconds(duration);
+    }
+}
