@@ -1181,6 +1181,7 @@
     <script src="js/tasks.js"></script>
     <script src="js/stats.js"></script>
     <script src="js/leave.js"></script>
+    <script src="js/auth.js"></script>
     <script>
 
 
@@ -1198,91 +1199,7 @@
             updateDateTime();
             setInterval(updateDateTime, 1000);
 
-            // 登录/注册逻辑保持不变，但需适配新 initData
-            document.getElementById('auth-login-btn').addEventListener('click', async () => {
-                console.log('Login button clicked');
-                const u = document.getElementById('auth-username').value.trim();
-                const p = document.getElementById('auth-password').value;
-                console.log('Attempting login for:', u);
-                const errEl = document.getElementById('auth-error');
-                if (!u || !p) return;
-
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: u, password: p })
-                });
-                const data = await res.json();
-                console.log('Login response:', data);
-                if (data.success && data.token) {
-                    _authToken = data.token;
-                    sessionStorage.setItem('auth_token', data.token);
-                    updatePageRoleUI(data.role, u);
-                    hideLoginScreen();
-                    console.log('Starting initData...');
-                    await initData();
-                    console.log('initData finished');
-                } else {
-                    console.error('Login failed:', data.error);
-                    errEl.textContent = data.error || '登录失败';
-                    errEl.classList.remove('hidden');
-                }
-            });
-
-            // 注册逻辑
-            document.getElementById('auth-register-btn').addEventListener('click', async () => {
-                const u = document.getElementById('reg-username').value.trim();
-                const p = document.getElementById('reg-password').value;
-                const code = document.getElementById('reg-code').value.trim();
-                const role = document.querySelector('input[name="auth-role"]:checked').value;
-                const errEl = document.getElementById('reg-error');
-
-                if (!u || !p || !code) {
-                    errEl.textContent = '请填写完整信息';
-                    errEl.classList.remove('hidden');
-                    return;
-                }
-
-                const res = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: u, password: p, role, regCode: code })
-                });
-                const data = await res.json();
-                if (data.success && data.token) {
-                    _authToken = data.token;
-                    sessionStorage.setItem('auth_token', data.token);
-                    updatePageRoleUI(data.role, u);
-                    hideLoginScreen();
-                    await initData();
-                } else {
-                    errEl.textContent = data.error || '注册失败';
-                    errEl.classList.remove('hidden');
-                }
-            });
-
-            // 自动登录
-            const savedToken = sessionStorage.getItem('auth_token');
-            if (savedToken) {
-                _authToken = savedToken;
-                fetch('/api/verify', { method: 'POST', headers: { 'Authorization': 'Bearer ' + savedToken } })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.authenticated) {
-                            updatePageRoleUI(data.role, data.username);
-                            hideLoginScreen();
-                            initData();
-                        } else { showLoginScreen(); }
-                    });
-            }
-
-            // 退出登录
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                if (confirm('确定要退出系统吗？')) {
-                    sessionStorage.removeItem('auth_token');
-                    window.location.reload();
-                }
-            });
+            initAuth();
 
             // 个人资料
             if (document.getElementById('profile-btn')) {
