@@ -1219,22 +1219,6 @@
 
 
 
-        // 页面卸载或隐藏时（切后台/关网页），强制清空防抖队列执行保存
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden' && _saveTimeout) {
-                clearTimeout(_saveTimeout);
-                _saveTimeout = null;
-                doSaveData();
-            }
-        });
-        window.addEventListener('beforeunload', () => {
-            if (_saveTimeout) {
-                clearTimeout(_saveTimeout);
-                _saveTimeout = null;
-                doSaveData();
-            }
-        });
-
 
 
         // 更新当前日期时间
@@ -1244,14 +1228,6 @@
             const dtEl = document.getElementById('current-date-time');
             if (dtEl) dtEl.textContent = now.toLocaleDateString('zh-CN', options);
         }
-
-        // --- 辅助工具 ---
-
-
-        // 存档切换逻辑
-
-
-
 
         // 初始化导航切换
         function initNavigation() {
@@ -1317,17 +1293,6 @@
                 });
             });
         }
-
-
-
-
-
-        // --- 热力图系统 ---
-
-
-
-
-
     </script>
     <!-- 论文/投稿日志弹窗 -->
     <div id="logs-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden pt-10 pb-10">

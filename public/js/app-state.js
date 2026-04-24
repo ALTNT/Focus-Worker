@@ -253,3 +253,22 @@ async function saveData(immediate = false) {
         await doSaveData();
     }, 2000);
 }
+
+// --- 数据持久化兜底监听器 ---
+
+// 页面卸载或隐藏时（切后台/关网页），强制清空防抖队列执行保存
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && _saveTimeout) {
+        clearTimeout(_saveTimeout);
+        _saveTimeout = null;
+        doSaveData();
+    }
+});
+
+window.addEventListener('beforeunload', () => {
+    if (_saveTimeout) {
+        clearTimeout(_saveTimeout);
+        _saveTimeout = null;
+        doSaveData();
+    }
+});
